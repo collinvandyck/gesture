@@ -4,9 +4,9 @@
 package rewrite
 
 import (
+	"log"
 	"net/http"
 	"strings"
-	"log"
 )
 
 var (
@@ -78,6 +78,3 @@ func findLinks(message string) []string {
 	}
 	return result
 }
-
-
-
