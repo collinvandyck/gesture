@@ -7,13 +7,11 @@ import (
 	"gesture/rewrite"
 	irc "github.com/fluffle/goirc/client"
 	"log"
-	"net/http"
 	"strings"
 )
 
 var (
 	channels   = []string{"#collinjester"}
-	HttpClient = &http.Client{}
 )
 
 // when an error occurs, calling this method will send the error back to the irc channel
