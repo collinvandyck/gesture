@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"gesture/rewrite"
 	irc "github.com/fluffle/goirc/client"
 	"io/ioutil"
 	"log"
@@ -14,9 +15,8 @@ import (
 )
 
 var (
-	channels     = []string{"#collinjester"}
-	HttpClient   = &http.Client{}
-	linkPrefixes = []string{"t.co", "cl.ly", "www", "bit.ly", "j.mp", "tcrn.ch", "http"}
+	channels   = []string{"#collinjester"}
+	HttpClient = &http.Client{}
 )
 
 type GisResult struct {
@@ -81,72 +81,6 @@ func googleImageSearch(conn *irc.Conn, channel string, nick string, search strin
 	}
 }
 
-// findLinks returns a slice of strings that look like links. adds a protocol to the beginning of 
-// the link if it doesn't already have one
-func findLinks(message string) []string {
-	result := make([]string, 0)
-	for _, token := range strings.Split(message, " ") {
-		// check to see if it looks like it might be a link
-		for _, prefix := range linkPrefixes {
-			if strings.HasPrefix(token, prefix) {
-				result = append(result, "http://"+token)
-				break
-			}
-		}
-	}
-	return result
-}
-
-// expandLink fully un-shortens a url
-func expandLink(url string) (expanded string, err error) {
-	if !strings.HasPrefix(url, "http") {
-		url = "http://" + url
-	}
-	log.Printf("Expanding link %s\n", url)
-	resp, err := HttpClient.Head(url) // will follow redirects
-	if err != nil {
-		return expanded, err
-	}
-	defer resp.Body.Close() // not sure if i have to do this with a head response
-	expanded = resp.Request.URL.String()
-	if expanded != url {
-		return
-	}
-	return "", nil
-}
-
-// takes an input line and rewrite any links that are shortened links into their full representation
-func rewriteLinksForLine(conn *irc.Conn, line *irc.Line) {
-	channel := line.Args[0]
-	message := line.Args[1]
-	for _, link := range findLinks(message) {
-		expandedLink, err := expandLink(link)
-		if err != nil {
-			log.Printf("Could not expand link %s: %s", link, err)
-		} else if expandedLink != "" {
-			conn.Privmsg(channel, fmt.Sprintf("%s: %s", line.Nick, expandedLink))
-		}
-	}
-}
-
-// rewriteString tokenizes an input string and attempts to rewrite each token if possible.
-// the result that is returned is the 
-func rewriteString(input string) string {
-	tokens := strings.Split(input, " ")
-	for idx, token := range tokens {
-		for _, prefix := range linkPrefixes {
-			if strings.HasPrefix(token, prefix) {
-				expanded, _ := expandLink(token)
-				if expanded != "" {
-					tokens[idx] = expanded
-					break
-				}
-			}
-		}
-	}
-	return strings.Join(tokens, " ")
-}
-
 // When a message comes in on a channel gesture has joined, this method will be called.
 func messageReceived(conn *irc.Conn, line *irc.Line) {
 	if len(line.Args) > 1 {
@@ -161,10 +95,14 @@ func messageReceived(conn *irc.Conn, line *irc.Line) {
 		if command == "gis" && len(commandArgs) >= 1 {
 			googleImageSearch(conn, channel, line.Nick, strings.Join(commandArgs, " "))
 		} else if command == "echo" {
-			response := line.Nick + ": " + message
-			conn.Privmsg(channel, rewriteString(response))
+			response := line.Nick + ": " + rewrite.Rewrite(message)
+			conn.Privmsg(channel, response)
 		} else {
-			rewriteLinksForLine(conn, line)
+			// find any shortened links and output the expanded versions
+			for _, link := range rewrite.GetRewrittenLinks(message) {
+				response := line.Nick + ": " + link
+				conn.Privmsg(channel, response)
+			}
 		}
 	}
 }
