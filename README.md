@@ -1,0 +1,1 @@
+gesture is an irc bot; an descendent of the allmighty jester.
