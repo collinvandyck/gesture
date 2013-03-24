@@ -7,20 +7,26 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"gesture/twitter"
 )
+
+// a rewriter is something that can rewrite a string and if that happens, it will return that
+// string, along with a true bool
+type Rewriter func(string) (string, error)
+
 
 var (
 	linkPrefixes = []string{"t.co", "cl.ly", "www", "bit.ly", "j.mp", "tcrn.ch", "http"}
-	HttpClient   = &http.Client{}
+	httpClient   = &http.Client{}
 )
 
 // GetRewrittenLinks takes an input line and rewrite any links that are shortened links into their full representation
 // the return value is a slice of those rewritten links
 func GetRewrittenLinks(input string) (result []string) {
-	for _, link := range findLinks(input) {
-		expanded, _ := expandLink(link)
-		if expanded != "" {
-			result = append(result, expanded)
+	for _, link := range strings.Split(input, " ") {
+		rewritten, err := rewrite(link)
+		if err == nil && rewritten != "" {
+			result = append(result, rewritten)
 		}
 	}
 	return
@@ -31,50 +37,61 @@ func GetRewrittenLinks(input string) (result []string) {
 func Rewrite(input string) string {
 	tokens := strings.Split(input, " ")
 	for idx, token := range tokens {
-		for _, prefix := range linkPrefixes {
-			if strings.HasPrefix(token, prefix) {
-				expanded, _ := expandLink(token)
-				if expanded != "" {
-					tokens[idx] = expanded
-					break
-				}
-			}
+		rewritten, err := rewrite(token)
+		if err == nil && rewritten != "" {
+			tokens[idx] = rewritten
 		}
 	}
 	return strings.Join(tokens, " ")
-
 }
 
-// expandLink fully un-shortens a url
-func expandLink(url string) (expanded string, err error) {
-	if !strings.HasPrefix(url, "http") {
-		url = "http://" + url
-	}
-	log.Printf("Expanding link %s\n", url)
-	resp, err := HttpClient.Head(url) // will follow redirects
-	if err != nil {
-		return expanded, err
-	}
-	defer resp.Body.Close() // not sure if i have to do this with a head response
-	expanded = resp.Request.URL.String()
-	if expanded != url {
-		return
+// the basic rewrite function. has a slice of Rewriters that it queries one by one. The first one
+// that has a successful rewrite is the one that's used
+func rewrite(token string) (result string, err error) {
+	rewriters := []Rewriter{expandUrl, expandTwitterStatus}
+	for _, rewriter := range rewriters {
+		rewritten, err := rewriter(token)
+		if err != nil {
+			return "", err
+		}
+		if rewritten != "" {
+			return rewritten, nil
+		}				
 	}
 	return "", nil
 }
 
-// findLinks returns a slice of strings that look like links. adds a protocol to the beginning of 
-// the link if it doesn't already have one
-func findLinks(message string) []string {
-	result := make([]string, 0)
-	for _, token := range strings.Split(message, " ") {
-		// check to see if it looks like it might be a link
-		for _, prefix := range linkPrefixes {
-			if strings.HasPrefix(token, prefix) {
-				result = append(result, "http://"+token)
-				break
-			}
-		}
+func expandTwitterStatus(token string) (result string, err error) {
+	if twitter.IsStatusUrl(token) {
+		result, err = twitter.GetStatus(token)
 	}
-	return result
+	return
 }
+
+
+// expandUrl is a rewriter that expands shortened links
+func expandUrl(url string) (result string, err error) {
+	for _, prefix := range linkPrefixes {
+		if strings.HasPrefix(url, prefix) {
+			break
+		}
+		return "", nil
+	}
+
+	if !strings.HasPrefix(url, "http") {
+		log.Printf("Adding HTTP to url %s\n", url)
+		url = "http://" + url
+	}
+	log.Printf("Expanding link %s\n", url)
+	resp, err := httpClient.Head(url) // will follow redirects
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close() // not sure if i have to do this with a head response
+	expanded := resp.Request.URL.String()
+	if expanded != url {
+		return expanded, nil
+	}
+	return "", nil
+}
+

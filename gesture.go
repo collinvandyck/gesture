@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"gesture/gis"
 	"gesture/rewrite"
+	"gesture/twitter"
 	irc "github.com/fluffle/goirc/client"
 	"log"
 	"strings"
 )
 
 var (
-	channels   = []string{"#collinjester"}
+	channels = []string{"#collinjester"}
 )
 
 // when an error occurs, calling this method will send the error back to the irc channel
@@ -31,18 +32,26 @@ func messageReceived(conn *irc.Conn, line *irc.Line) {
 
 		log.Printf(">> %s (%s): %s\n", line.Nick, channel, message)
 
-		if command == "gis" && len(commandArgs) >= 1 {
-			link, err := gis.Search(strings.Join(commandArgs, " "))
+		switch {
+		case command == "gis":
+			if len(commandArgs) > 0 {
+				link, err := gis.Search(strings.Join(commandArgs, " "))
+				if err != nil {
+					sendError(conn, channel, line.Nick, err)
+				} else {
+					conn.Privmsg(channel, fmt.Sprintf("%s: %s", line.Nick, link))
+				}
+			}
+		case command == "echo":
+			conn.Privmsg(channel, fmt.Sprintf("%s: %s", line.Nick, rewrite.Rewrite(message)))
+		case twitter.IsStatusUrl(command):
+			status, err := twitter.GetStatus(command)
 			if err != nil {
 				sendError(conn, channel, line.Nick, err)
 			} else {
-				response := line.Nick + ": " + link
-				conn.Privmsg(channel, response)
+				conn.Privmsg(channel, fmt.Sprintf("%s: %s", line.Nick, rewrite.Rewrite(status)))
 			}
-		} else if command == "echo" {
-			response := line.Nick + ": " + rewrite.Rewrite(message)
-			conn.Privmsg(channel, response)
-		} else {
+		default:
 			// find any shortened links and output the expanded versions
 			for _, link := range rewrite.GetRewrittenLinks(message) {
 				response := line.Nick + ": " + link
