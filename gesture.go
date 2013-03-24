@@ -31,7 +31,7 @@ type GisResponse struct {
 
 // returns true if the url ends with some well known suffixes
 func isImage(url string) bool {
-	suffixes := []string{".jpg", ".jpeg", ".gif", ".png"}
+	suffixes := []string{".jpg", ".jpeg", ".gif", ".png", ".bmp"}
 	lowered := strings.ToLower(url)
 	for _, suffix := range suffixes {
 		if strings.HasSuffix(lowered, suffix) {
@@ -41,20 +41,29 @@ func isImage(url string) bool {
 	return false
 }
 
+// when an error occurs, calling this method will send the error back to the irc channel
+func sendError(conn *irc.Conn, channel string, nick string, err error) {
+	log.Print(err)
+	conn.Privmsg(channel, fmt.Sprintf("%s: oops: %v", nick, err))
+}
+
 func googleImageSearch(conn *irc.Conn, channel string, nick string, search string) {
 	url := "http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=" + url.QueryEscape(search)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		log.Fatal(err)
+		sendError(conn, channel, nick, err)
+		return
 	}
 	resp, err := HttpClient.Do(req)
 	if err != nil {
-		log.Fatal(err)
+		sendError(conn, channel, nick, err)
+		return
 	}
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal("Could not read response body", err)
+		sendError(conn, channel, nick, err)
+		return
 	}
 	var gisResponse GisResponse
 	json.Unmarshal(body, &gisResponse)
@@ -71,6 +80,57 @@ func googleImageSearch(conn *irc.Conn, channel string, nick string, search strin
 	}
 }
 
+// findLinks returns a slice of strings that look like links. adds a protocol to the beginning of 
+// the link if it doesn't already have one
+func findLinks(message string) []string {
+	prefixes := []string{ "t.co", "cl.ly", "www", "bit.ly", "j.mp", "tcrn.ch"}
+	result := make([]string, 0)
+	for _, token := range strings.Split(message, " ") {
+		if strings.HasPrefix(token, "http") {
+			result = append(result, token)
+		} else {
+			// check to see if it looks like it might be a link
+			for _, prefix := range prefixes {
+				if strings.HasPrefix(token, prefix) {
+					result = append(result, "http://" + token)
+					break
+				}
+			}
+		}
+	}
+	return result
+}
+
+// expandLink fully un-shortens a url
+func expandLink(url string) (expanded string, err error) {
+	log.Printf("Expanding link %s\n", url)
+	resp, err := HttpClient.Head(url) // will follow redirects
+	if err != nil {
+		return expanded, err
+	}
+	defer resp.Body.Close() // not sure if i have to do this with a head response
+	expanded = resp.Request.URL.String()
+	if expanded != url {
+		return
+	}
+	return "", nil
+}
+
+// takes an input line and rewrite any links that are shortened links into their full representation
+func rewriteLine(conn *irc.Conn, line *irc.Line) {
+	channel := line.Args[0]
+	message := line.Args[1]
+	for _, link := range findLinks(message) {
+		expandedLink, err := expandLink(link)
+		if err != nil {
+			log.Printf("Could not expand link %s: %s", link, err)
+		} else if expandedLink != "" {
+			conn.Privmsg(channel, fmt.Sprintf("%s: %s", line.Nick, expandedLink))
+		}
+	}
+}
+
+// When a message comes in on a channel gesture has joined, this method will be called.
 func messageReceived(conn *irc.Conn, line *irc.Line) {
 	if len(line.Args) > 1 {
 		channel := line.Args[0]
@@ -82,10 +142,12 @@ func messageReceived(conn *irc.Conn, line *irc.Line) {
 		fmt.Printf(">> %s (%s): %s\n", line.Nick, channel, message)
 
 		if command == "gis" && len(commandArgs) >= 1 {
-			go googleImageSearch(conn, channel, line.Nick, strings.Join(commandArgs, " "))
+			googleImageSearch(conn, channel, line.Nick, strings.Join(commandArgs, " "))
 		} else if command == "echo" {
 			response := line.Nick + ": " + message
 			conn.Privmsg(channel, response)
+		} else {
+			rewriteLine(conn, line)
 		}
 	}
 }
