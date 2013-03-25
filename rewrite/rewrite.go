@@ -24,7 +24,7 @@ var (
 // the return value is a slice of those rewritten links
 func GetRewrittenLinks(input string) (result []string) {
 	for _, link := range strings.Split(input, " ") {
-		rewritten, err := rewrite(link)
+		rewritten, err := rewriteToken(link)
 		if err == nil && rewritten != "" {
 			result = append(result, rewritten)
 		}
@@ -37,7 +37,7 @@ func GetRewrittenLinks(input string) (result []string) {
 func Rewrite(input string) string {
 	tokens := strings.Split(input, " ")
 	for idx, token := range tokens {
-		rewritten, err := rewrite(token)
+		rewritten, err := rewriteToken(token)
 		if err == nil && rewritten != "" {
 			tokens[idx] = rewritten
 		}
@@ -47,7 +47,7 @@ func Rewrite(input string) string {
 
 // the basic rewrite function. has a slice of Rewriters that it queries one by one. The first one
 // that has a successful rewrite is the one that's used
-func rewrite(token string) (result string, err error) {
+func rewriteToken(token string) (result string, err error) {
 	rewriters := []Rewriter{expandUrl, twitter.GetStatus}
 	result = token
 	for _, rewriter := range rewriters {
