@@ -50,7 +50,7 @@ func messageReceived(conn *irc.Conn, line *irc.Line) {
 				if err != nil {
 					sendError(conn, channel, line.Nick, err)
 				} else {
-					conn.Privmsg(channel, fmt.Sprintf("%s: %s", line.Nick, described))
+					conn.Privmsg(channel, fmt.Sprintf("%s: %s", line.Nick, rewrite.Rewrite(described)))
 				}
 			}
 		default:

@@ -49,14 +49,13 @@ func Rewrite(input string) string {
 // that has a successful rewrite is the one that's used
 func rewrite(token string) (result string, err error) {
 	rewriters := []Rewriter{expandUrl, twitter.GetStatus}
+	result = token
 	for _, rewriter := range rewriters {
-		rewritten, err := rewriter(token)
-		if err != nil {
-			return "", err
+		rewritten, err := rewriter(result)
+		if rewritten != "" && err == nil {
+			result = rewritten
+			return result, nil
 		}
-		if rewritten != "" {
-			return rewritten, nil
-		}				
 	}
 	return "", nil
 }
