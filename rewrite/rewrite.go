@@ -48,7 +48,7 @@ func Rewrite(input string) string {
 // the basic rewrite function. has a slice of Rewriters that it queries one by one. The first one
 // that has a successful rewrite is the one that's used
 func rewrite(token string) (result string, err error) {
-	rewriters := []Rewriter{expandUrl, expandTwitterStatus}
+	rewriters := []Rewriter{expandUrl, twitter.GetStatus}
 	for _, rewriter := range rewriters {
 		rewritten, err := rewriter(token)
 		if err != nil {
@@ -60,14 +60,6 @@ func rewrite(token string) (result string, err error) {
 	}
 	return "", nil
 }
-
-func expandTwitterStatus(token string) (result string, err error) {
-	if twitter.IsStatusUrl(token) {
-		result, err = twitter.GetStatus(token)
-	}
-	return
-}
-
 
 // expandUrl is a rewriter that expands shortened links
 func expandUrl(url string) (result string, err error) {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"gesture/gis"
 	"gesture/rewrite"
+	"gesture/twitter"
 	irc "github.com/fluffle/goirc/client"
 	"log"
 	"strings"
@@ -43,6 +44,15 @@ func messageReceived(conn *irc.Conn, line *irc.Line) {
 			}
 		case command == "echo":
 			conn.Privmsg(channel, fmt.Sprintf("%s: %s", line.Nick, rewrite.Rewrite(message)))
+		case command == "describe":
+			if len(commandArgs) > 0 {
+				described, err := twitter.Describe(commandArgs[0])
+				if err != nil {
+					sendError(conn, channel, line.Nick, err)
+				} else {
+					conn.Privmsg(channel, fmt.Sprintf("%s: %s", line.Nick, described))
+				}
+			}
 		default:
 			// find any shortened links and output the expanded versions
 			for _, link := range rewrite.GetRewrittenLinks(message) {
