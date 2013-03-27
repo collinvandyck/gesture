@@ -40,32 +40,6 @@ func Rewrite(input string) string {
 	return strings.Join(tokens, " ")
 }
 
-// expandUrl is a rewriter that expands shortened links
-func expandUrl(url string) (result string, err error) {
-	for _, prefix := range linkPrefixes {
-		if strings.HasPrefix(url, prefix) {
-			break
-		}
-		return "", nil
-	}
-
-	if !strings.HasPrefix(url, "http") {
-		log.Printf("Adding HTTP to url %s\n", url)
-		url = "http://" + url
-	}
-	log.Printf("Expanding link %s\n", url)
-	resp, err := httpClient.Head(url) // will follow redirects
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close() // not sure if i have to do this with a head response
-	expanded := resp.Request.URL.String()
-	if expanded != url {
-		return expanded, nil
-	}
-	return "", nil
-}
-
 // an expander is something that takes in a string and possibly expands it
 type expander func(string) (string, error)
 
@@ -96,3 +70,30 @@ func expandAll(input string) (string, error) {
 	}
 	return current, nil
 }
+
+// expandUrl is an expander that expands shortened links
+func expandUrl(url string) (result string, err error) {
+	for _, prefix := range linkPrefixes {
+		if strings.HasPrefix(url, prefix) {
+			break
+		}
+		return "", nil
+	}
+
+	if !strings.HasPrefix(url, "http") {
+		log.Printf("Adding HTTP to url %s\n", url)
+		url = "http://" + url
+	}
+	log.Printf("Expanding link %s\n", url)
+	resp, err := httpClient.Head(url) // will follow redirects
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close() // not sure if i have to do this with a head response
+	expanded := resp.Request.URL.String()
+	if expanded != url {
+		return expanded, nil
+	}
+	return "", nil
+}
+
