@@ -17,4 +17,3 @@ type MessageContext interface {
 	// this method simply outputs some text to the channel
 	Send(line string)
 }
-

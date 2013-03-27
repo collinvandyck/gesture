@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"gesture/plugin"
 	"gesture/plugin/gis"
-	"gesture/rewrite"
 	"gesture/plugin/twitter"
+	"gesture/rewrite"
 	irc "github.com/fluffle/goirc/client"
 	"log"
 	"strings"
@@ -112,6 +112,3 @@ func (mc *messageContext) Send(message string) {
 	channel := mc.line.Args[0]
 	mc.conn.Privmsg(channel, fmt.Sprintf(rewrite.Rewrite(message)))
 }
-
-
-

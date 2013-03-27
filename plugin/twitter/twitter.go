@@ -3,14 +3,14 @@ package twitter
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"gesture/plugin"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"regexp"
 	"strings"
-	"gesture/plugin"
-	"errors"
 )
 
 var (
@@ -74,7 +74,7 @@ func getTweet(url string) (result string, err error) {
 	var content map[string]interface{}
 	if err = json.Unmarshal(body, &content); err != nil {
 		return "", err
-	}	
+	}
 	response := fmt.Sprintf("%s: %s", parts[3], content["text"].(string))
 	return response, nil
 }
