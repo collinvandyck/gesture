@@ -12,13 +12,14 @@ import (
 var (
 	linkPrefixes = []string{"t.co", "cl.ly", "www", "bit.ly", "j.mp", "tcrn.ch", "http"}
 	httpClient   = &http.Client{}
+	expanders    = []expander{expandUrl}
 )
 
 // GetRewrittenLinks takes an input line and rewrite any links that are shortened links into their full representation
 // the return value is a slice of those rewritten links
 func GetRewrittenLinks(input string) (result []string) {
 	for _, link := range strings.Split(input, " ") {
-		rewritten, err := expandUrl(link)
+		rewritten, err := expandAll(link)
 		if err == nil && rewritten != "" {
 			result = append(result, rewritten)
 		}
@@ -31,7 +32,7 @@ func GetRewrittenLinks(input string) (result []string) {
 func Rewrite(input string) string {
 	tokens := strings.Split(input, " ")
 	for idx, token := range tokens {
-		rewritten, err := expandUrl(token)
+		rewritten, err := expandAll(token)
 		if err == nil && rewritten != "" {
 			tokens[idx] = rewritten
 		}
@@ -63,4 +64,35 @@ func expandUrl(url string) (result string, err error) {
 		return expanded, nil
 	}
 	return "", nil
+}
+
+// an expander is something that takes in a string and possibly expands it
+type expander func(string) (string, error)
+
+// thoroughly expand the input string by running it through the expander functions
+func expandAll(input string) (string, error) {
+	known := make(map[string]bool) // to track what we've seen already
+	current := input
+	known[current] = true
+	for {
+		rewritten := false
+		for _, fn := range expanders {
+			if result, err := fn(input); result != "" && err == nil {
+				if known[result] {
+					break
+				}
+				current = result
+				known[current] = true
+				rewritten = true
+				break
+			}
+		}
+		if !rewritten {
+			break
+		}
+	}
+	if current == input {
+		return "", nil
+	}
+	return current, nil
 }
