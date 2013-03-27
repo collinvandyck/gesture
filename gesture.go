@@ -65,9 +65,8 @@ func messageReceived(conn *irc.Conn, line *irc.Line) {
 				break
 			}
 		}
-
 		if !handled {
-			// try to rewrite the line
+			// try to expand any links
 			for _, token := range rewrite.GetRewrittenLinks(mc.Message()) {
 				mc.Reply(token)
 			}
@@ -110,5 +109,5 @@ func (mc *messageContext) Reply(message string) {
 
 func (mc *messageContext) Send(message string) {
 	channel := mc.line.Args[0]
-	mc.conn.Privmsg(channel, fmt.Sprintf(rewrite.Rewrite(message)))
+	mc.conn.Privmsg(channel, rewrite.Rewrite(message))
 }

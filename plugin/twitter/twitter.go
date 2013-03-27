@@ -38,12 +38,17 @@ func (twitter TwitterPlugin) Call(mc plugin.MessageContext) (bool, error) {
 		}
 		return true, nil
 	} else {
+		found := false
 		for _, word := range strings.Split(mc.Message(), " ") {
 			if strings.Contains(word, "twitter.com") {
 				if tweet, err := getTweet(word); err == nil && tweet != "" {
+					found = true
 					mc.Send(tweet)
 				}
 			}
+		}
+		if found {
+			return true, nil
 		}
 	}
 	return false, nil

@@ -4,16 +4,40 @@
 package rewrite
 
 import (
-	"log"
+	"errors"
+	"fmt"
+	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strings"
 )
 
 var (
-	linkPrefixes = []string{"t.co", "cl.ly", "www", "bit.ly", "j.mp", "tcrn.ch", "http"}
-	httpClient   = &http.Client{}
-	expanders    = []expander{expandUrl}
+	linkPrefixes    = []string{"t.co", "cl.ly", "www", "bit.ly", "j.mp", "tcrn.ch", "http"}
+	httpClient      = &http.Client{}
+	expanders       = []expander{expandUrl, expandEmbeddedImages}
+	embeddedRePairs = []embeddedRePair{
+		makeRePair(`(http://)?(www\.)?cl\.ly[^\s]+`, `a class="embed".*(http://cl\.ly[^"]+)`, 1),
+		makeRePair(`(http://)?(www\.)?instagr.?am[^\s]+`, `img class="photo".*(http://[^"]+)`, 1),
+		makeRePair(`(http://)?(x\.)?kingsh\.it[^\s]+`, `a class="embed".*(http://x\.kingsh\.it[^"]+)`, 1),
+		makeRePair(`(https?://)?(www\.)?twitter\.com.*photo?[^\s]+`, `img src="(https?://[^"]+)".*Embedded image`, 1),
+		makeRePair(`(https?://)?(www\.)?twitter\.com.*photo?[^\s]+`, `img.*media-slideshow-image.*src="(https?://[^"]+):.*".*`, 1),
+	}
 )
+
+func makeRePair(link string, image string, imageSubmatch int) embeddedRePair {
+	return embeddedRePair{
+		regexp.MustCompile(link),
+		regexp.MustCompile(image),
+		imageSubmatch,
+	}
+}
+
+type embeddedRePair struct {
+	link          *regexp.Regexp // tests whether or not a token is a link
+	image         *regexp.Regexp // what to search for in the fetched html
+	imageSubmatch int            // what submatch to pull out of the image regexp
+}
 
 // GetRewrittenLinks takes an input line and rewrite any links that are shortened links into their full representation
 // the return value is a slice of those rewritten links
@@ -51,7 +75,7 @@ func expandAll(input string) (string, error) {
 	for {
 		rewritten := false
 		for _, fn := range expanders {
-			if result, err := fn(input); result != "" && err == nil {
+			if result, err := fn(current); result != "" && err == nil {
 				if known[result] {
 					break
 				}
@@ -71,20 +95,44 @@ func expandAll(input string) (string, error) {
 	return current, nil
 }
 
+func expandEmbeddedImages(url string) (result string, err error) {
+	for _, rePair := range embeddedRePairs {
+		if found := rePair.link.FindString(url); found != "" {
+			resp, err := httpClient.Get(found)
+			if err != nil {
+				return "", err
+			}
+			if resp.StatusCode >= 300 {
+				return "", errors.New(fmt.Sprintf("Bad response code: %d", resp.StatusCode))
+			}
+			body, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return "", err
+			}
+			if matches := rePair.image.FindStringSubmatch(string(body)); matches != nil {
+				return matches[rePair.imageSubmatch], nil
+			}
+		}
+	}
+	return "", nil
+}
+
 // expandUrl is an expander that expands shortened links
 func expandUrl(url string) (result string, err error) {
+	prefixFound := false
 	for _, prefix := range linkPrefixes {
 		if strings.HasPrefix(url, prefix) {
+			prefixFound = true
 			break
 		}
+	}
+	if !prefixFound {
 		return "", nil
 	}
 
 	if !strings.HasPrefix(url, "http") {
-		log.Printf("Adding HTTP to url %s\n", url)
 		url = "http://" + url
 	}
-	log.Printf("Expanding link %s\n", url)
 	resp, err := httpClient.Head(url) // will follow redirects
 	if err != nil {
 		return "", err
@@ -96,4 +144,3 @@ func expandUrl(url string) (result string, err error) {
 	}
 	return "", nil
 }
-
