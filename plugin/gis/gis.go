@@ -9,7 +9,30 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"gesture/plugin"
 )
+
+// lol types
+type GisPlugin bool
+
+// lol types
+func NewPlugin() GisPlugin {
+	return GisPlugin(false)
+}
+
+func (gis GisPlugin) Call(mc plugin.MessageContext) (bool, error) {
+	if mc.Command() == "gis" {
+		if len(mc.CommandArgs()) > 0 {
+			link, err := search(strings.Join(mc.CommandArgs(), " "))
+			if err != nil {
+				return false, err
+			} else {
+				mc.Reply(link)
+			}
+		}
+	}
+	return false, nil
+}
 
 // these structs really tie the room together, man
 type gisResult struct {
@@ -27,7 +50,7 @@ var (
 )
 
 // Search queries google for some images, and then randomly selects one
-func Search(search string) (result string, err error) {
+func search(search string) (result string, err error) {
 	url := "http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=" + url.QueryEscape(search)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {

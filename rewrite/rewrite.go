@@ -7,13 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
-	"gesture/twitter"
 )
-
-// a rewriter is something that can rewrite a string and if that happens, it will return that
-// string, along with a true bool
-type Rewriter func(string) (string, error)
-
 
 var (
 	linkPrefixes = []string{"t.co", "cl.ly", "www", "bit.ly", "j.mp", "tcrn.ch", "http"}
@@ -24,7 +18,7 @@ var (
 // the return value is a slice of those rewritten links
 func GetRewrittenLinks(input string) (result []string) {
 	for _, link := range strings.Split(input, " ") {
-		rewritten, err := rewriteToken(link)
+		rewritten, err := expandUrl(link)
 		if err == nil && rewritten != "" {
 			result = append(result, rewritten)
 		}
@@ -37,27 +31,12 @@ func GetRewrittenLinks(input string) (result []string) {
 func Rewrite(input string) string {
 	tokens := strings.Split(input, " ")
 	for idx, token := range tokens {
-		rewritten, err := rewriteToken(token)
+		rewritten, err := expandUrl(token)
 		if err == nil && rewritten != "" {
 			tokens[idx] = rewritten
 		}
 	}
 	return strings.Join(tokens, " ")
-}
-
-// the basic rewrite function. has a slice of Rewriters that it queries one by one. The first one
-// that has a successful rewrite is the one that's used
-func rewriteToken(token string) (result string, err error) {
-	rewriters := []Rewriter{expandUrl, twitter.GetStatus}
-	result = token
-	for _, rewriter := range rewriters {
-		rewritten, err := rewriter(result)
-		if rewritten != "" && err == nil {
-			result = rewritten
-			return result, nil
-		}
-	}
-	return "", nil
 }
 
 // expandUrl is a rewriter that expands shortened links
@@ -85,4 +64,3 @@ func expandUrl(url string) (result string, err error) {
 	}
 	return "", nil
 }
-
