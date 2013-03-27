@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"gesture/plugin"
@@ -9,16 +10,54 @@ import (
 	"gesture/rewrite"
 	irc "github.com/fluffle/goirc/client"
 	"log"
+	"os"
 	"strings"
+	"io/ioutil"
 )
 
 var (
-	channels = []string{"#collinjester"}
 	plugins  []plugin.Plugin
 )
 
+// gesture config
+type Config struct {
+	BotName  string
+	Hostname string
+	Channels []string
+}
+
+// readsConfig unmarshals the config from a file and returns the struct
+func readConfig(filename string) (*Config, error) {
+	file, err := os.Open(filename)
+	if err != nil { 
+		return nil, err
+	}
+	defer file.Close()
+	var config Config
+	b, err := ioutil.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+	if err = json.Unmarshal(b, &config); err != nil {
+		return nil, err
+	}
+	return &config, nil
+
+}
+
 // a Plugin is something that can respond to messages
 func main() {
+	if len(os.Args) < 2 {
+		log.Println("usage: gesture [conf_file]")
+		os.Exit(1)
+	}
+
+	config, err := readConfig(os.Args[1])
+	if err != nil {
+		log.Println(err)
+		os.Exit(1)
+	}
+
 	var twitterPlugin = twitter.NewPlugin()
 	var gisPlugin = gis.NewPlugin()
 	plugins = []plugin.Plugin{twitterPlugin, gisPlugin}
@@ -28,7 +67,7 @@ func main() {
 	c.SSL = true
 	c.AddHandler(irc.CONNECTED,
 		func(conn *irc.Conn, line *irc.Line) {
-			for _, channel := range channels {
+			for _, channel := range config.Channels {
 				conn.Join(channel)
 			}
 		})
@@ -37,7 +76,7 @@ func main() {
 	c.AddHandler("PRIVMSG", func(conn *irc.Conn, line *irc.Line) {
 		messageReceived(conn, line)
 	})
-	if err := c.Connect("irc.freenode.net"); err != nil {
+	if err := c.Connect(config.Hostname); err != nil {
 		fmt.Printf("Connection error: %s\n", err)
 	}
 	// Wait for disconnect
