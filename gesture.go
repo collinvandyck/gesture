@@ -24,6 +24,7 @@ var (
 type Config struct {
 	BotName  string
 	Hostname string
+	SSL bool
 	Channels []string
 }
 
@@ -59,14 +60,16 @@ func main() {
 		os.Exit(1)
 	}
 
+	log.Printf("%+v\n", config)
+
 	plugins = []plugin.Plugin{
 		twitter.NewPlugin(), 
 		gis.NewPlugin(),
 		identity.NewPlugin(config.BotName)}
 
 	flag.Parse()
-	c := irc.SimpleClient("gesturebot")
-	c.SSL = true
+	c := irc.SimpleClient(config.BotName)
+	c.SSL = config.SSL
 	c.AddHandler(irc.CONNECTED,
 		func(conn *irc.Conn, line *irc.Line) {
 			for _, channel := range config.Channels {
