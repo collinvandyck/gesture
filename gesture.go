@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"gesture/plugin"
+	"gesture/plugin/identity"
 	"gesture/plugin/gis"
 	"gesture/plugin/twitter"
 	"gesture/rewrite"
@@ -58,9 +59,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	var twitterPlugin = twitter.NewPlugin()
-	var gisPlugin = gis.NewPlugin()
-	plugins = []plugin.Plugin{twitterPlugin, gisPlugin}
+	plugins = []plugin.Plugin{
+		twitter.NewPlugin(), 
+		gis.NewPlugin(),
+		identity.NewPlugin(config.BotName)}
 
 	flag.Parse()
 	c := irc.SimpleClient("gesturebot")
