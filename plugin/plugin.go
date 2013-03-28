@@ -19,5 +19,4 @@ type MessageContext interface {
 
 	// sends a reply to the original sender with a ftfy prefix
 	Ftfy(line string)
-
 }

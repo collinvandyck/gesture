@@ -5,33 +5,33 @@ import (
 	"flag"
 	"fmt"
 	"gesture/plugin"
-	"gesture/plugin/identity"
 	"gesture/plugin/gis"
+	"gesture/plugin/identity"
 	"gesture/plugin/twitter"
 	"gesture/rewrite"
 	irc "github.com/fluffle/goirc/client"
+	"io/ioutil"
 	"log"
 	"os"
 	"strings"
-	"io/ioutil"
 )
 
 var (
-	plugins  []plugin.Plugin
+	plugins []plugin.Plugin
 )
 
 // gesture config
 type Config struct {
 	BotName  string
 	Hostname string
-	SSL bool
+	SSL      bool
 	Channels []string
 }
 
 // readsConfig unmarshals the config from a file and returns the struct
 func readConfig(filename string) (*Config, error) {
 	file, err := os.Open(filename)
-	if err != nil { 
+	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
@@ -61,7 +61,7 @@ func main() {
 	}
 
 	plugins = []plugin.Plugin{
-		twitter.NewPlugin(), 
+		twitter.NewPlugin(),
 		gis.NewPlugin(),
 		identity.NewPlugin(config.BotName),
 	}
@@ -77,14 +77,14 @@ func main() {
 			}
 		})
 	quit := make(chan bool)
-	c.AddHandler("JOIN", func(conn *irc.Conn, line *irc.Line) { 
+	c.AddHandler("JOIN", func(conn *irc.Conn, line *irc.Line) {
 		if line.Nick == config.BotName {
 			log.Printf("Joined %+v\n", line.Args)
 		}
 	})
-	c.AddHandler(irc.DISCONNECTED, func(conn *irc.Conn, line *irc.Line) { 
+	c.AddHandler(irc.DISCONNECTED, func(conn *irc.Conn, line *irc.Line) {
 		log.Println("Disconnected. Quitting.")
-		quit <- true 
+		quit <- true
 	})
 	c.AddHandler("PRIVMSG", func(conn *irc.Conn, line *irc.Line) {
 		messageReceived(conn, line)
@@ -168,4 +168,3 @@ func (mc *messageContext) Ftfy(message string) {
 	channel := mc.line.Args[0]
 	mc.conn.Privmsg(channel, fmt.Sprintf("%s: ftfy -> %s", mc.line.Nick, rewrite.Rewrite(message)))
 }
-

@@ -13,7 +13,7 @@ type Plugin struct {
 
 // lol types
 func NewPlugin(name string) Plugin {
-	return Plugin{name:name}
+	return Plugin{name: name}
 }
 
 func (me Plugin) Call(mc plugin.MessageContext) (bool, error) {
@@ -24,4 +24,3 @@ func (me Plugin) Call(mc plugin.MessageContext) (bool, error) {
 	}
 	return false, nil
 }
-
