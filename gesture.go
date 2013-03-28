@@ -60,8 +60,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	log.Printf("%+v\n", config)
-
 	plugins = []plugin.Plugin{
 		twitter.NewPlugin(), 
 		gis.NewPlugin(),
