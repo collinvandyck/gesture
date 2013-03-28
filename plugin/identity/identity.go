@@ -6,12 +6,10 @@ import (
 	"strings"
 )
 
-// lol types
 type Plugin struct {
 	name string
 }
 
-// lol types
 func NewPlugin(name string) Plugin {
 	return Plugin{name: name}
 }

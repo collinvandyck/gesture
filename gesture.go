@@ -8,6 +8,7 @@ import (
 	"gesture/plugin/gis"
 	"gesture/plugin/identity"
 	"gesture/plugin/twitter"
+	"gesture/plugin/graphite"
 	"gesture/rewrite"
 	irc "github.com/fluffle/goirc/client"
 	"io/ioutil"
@@ -26,6 +27,7 @@ type Config struct {
 	Hostname string
 	SSL      bool
 	Channels []string
+	GraphitePrefix string
 }
 
 // readsConfig unmarshals the config from a file and returns the struct
@@ -64,6 +66,10 @@ func main() {
 		twitter.NewPlugin(),
 		gis.NewPlugin(),
 		identity.NewPlugin(config.BotName),
+	}
+
+	if config.GraphitePrefix != "" {
+		plugins = append(plugins, graphite.NewPlugin(config.GraphitePrefix))
 	}
 
 	flag.Parse()
