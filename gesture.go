@@ -9,6 +9,7 @@ import (
 	"gesture/plugin/graphite"
 	"gesture/plugin/identity"
 	"gesture/plugin/twitter"
+	"gesture/plugin/youtube"
 	"gesture/rewrite"
 	irc "github.com/fluffle/goirc/client"
 	"io/ioutil"
@@ -65,6 +66,7 @@ func main() {
 	plugins = []plugin.Plugin{
 		twitter.NewPlugin(),
 		gis.NewPlugin(),
+    youtube.NewPlugin(),
 		identity.NewPlugin(config.BotName),
 	}
 
