@@ -11,9 +11,13 @@ type MessageContext interface {
 	Command() string
 	CommandArgs() []string
 
-	// this method replies to the original sender
-	Reply(line string)
-
 	// this method simply outputs some text to the channel
 	Send(line string)
+
+	// sends a reply to the original sender
+	Reply(line string)
+
+	// sends a reply to the original sender with a ftfy prefix
+	Ftfy(line string)
+
 }

@@ -120,7 +120,7 @@ func messageReceived(conn *irc.Conn, line *irc.Line) {
 		if !handled {
 			// try to expand any links
 			for _, token := range rewrite.GetRewrittenLinks(mc.Message()) {
-				mc.Reply(token)
+				mc.Ftfy(token)
 			}
 		}
 	}
@@ -154,12 +154,18 @@ func (mc *messageContext) CommandArgs() []string {
 	return sliced[1:]
 }
 
-func (mc *messageContext) Reply(message string) {
-	channel := mc.line.Args[0]
-	mc.conn.Privmsg(channel, fmt.Sprintf("%s: ftfy -> %s", mc.line.Nick, rewrite.Rewrite(message)))
-}
-
 func (mc *messageContext) Send(message string) {
 	channel := mc.line.Args[0]
 	mc.conn.Privmsg(channel, rewrite.Rewrite(message))
 }
+
+func (mc *messageContext) Reply(message string) {
+	channel := mc.line.Args[0]
+	mc.conn.Privmsg(channel, fmt.Sprintf("%s: %s", mc.line.Nick, rewrite.Rewrite(message)))
+}
+
+func (mc *messageContext) Ftfy(message string) {
+	channel := mc.line.Args[0]
+	mc.conn.Privmsg(channel, fmt.Sprintf("%s: ftfy -> %s", mc.line.Nick, rewrite.Rewrite(message)))
+}
+

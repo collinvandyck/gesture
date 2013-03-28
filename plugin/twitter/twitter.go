@@ -33,7 +33,7 @@ func (twitter TwitterPlugin) Call(mc plugin.MessageContext) (bool, error) {
 			if err != nil {
 				return false, err
 			} else {
-				mc.Reply(described)
+				mc.Ftfy(described)
 			}
 		}
 		return true, nil

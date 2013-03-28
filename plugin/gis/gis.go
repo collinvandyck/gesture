@@ -27,7 +27,7 @@ func (gis GisPlugin) Call(mc plugin.MessageContext) (bool, error) {
 			if err != nil {
 				return false, err
 			} else {
-				mc.Reply(link)
+				mc.Ftfy(link)
 			}
 		}
 	}
