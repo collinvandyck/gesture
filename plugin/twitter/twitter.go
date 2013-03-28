@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"gesture/plugin"
+	"gesture/util"
 	"regexp"
 	"strings"
-	"gesture/util"
 )
 
 var (

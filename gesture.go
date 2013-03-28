@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"gesture/plugin"
 	"gesture/plugin/gis"
+	"gesture/plugin/graphite"
 	"gesture/plugin/identity"
 	"gesture/plugin/twitter"
-	"gesture/plugin/graphite"
 	"gesture/rewrite"
 	irc "github.com/fluffle/goirc/client"
 	"io/ioutil"
@@ -23,10 +23,10 @@ var (
 
 // gesture config
 type Config struct {
-	BotName  string
-	Hostname string
-	SSL      bool
-	Channels []string
+	BotName        string
+	Hostname       string
+	SSL            bool
+	Channels       []string
 	GraphitePrefix string
 }
 

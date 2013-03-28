@@ -2,10 +2,10 @@
 package util
 
 import (
-	"net/http"
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 )
 
 var (
@@ -46,4 +46,3 @@ func GetUrl(url string) ([]byte, error) {
 	}
 	return body, nil
 }
-

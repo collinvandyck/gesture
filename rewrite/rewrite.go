@@ -4,9 +4,9 @@
 package rewrite
 
 import (
+	"gesture/util"
 	"regexp"
 	"strings"
-	"gesture/util"
 )
 
 var (

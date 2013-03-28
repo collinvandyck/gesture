@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"gesture/plugin"
+	"gesture/util"
 	"math/rand"
 	"net/url"
 	"strings"
-	"gesture/util"
 )
 
 // lol types
