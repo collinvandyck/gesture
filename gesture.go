@@ -63,7 +63,8 @@ func main() {
 	plugins = []plugin.Plugin{
 		twitter.NewPlugin(), 
 		gis.NewPlugin(),
-		identity.NewPlugin(config.BotName)}
+		identity.NewPlugin(config.BotName),
+	}
 
 	flag.Parse()
 	c := irc.SimpleClient(config.BotName)
@@ -80,7 +81,7 @@ func main() {
 		messageReceived(conn, line)
 	})
 	if err := c.Connect(config.Hostname); err != nil {
-		fmt.Printf("Connection error: %s\n", err)
+		log.Fatalf("Connection error: %s\n", err)
 	}
 	// Wait for disconnect
 	<-quit
