@@ -71,12 +71,21 @@ func main() {
 	c.SSL = config.SSL
 	c.AddHandler(irc.CONNECTED,
 		func(conn *irc.Conn, line *irc.Line) {
+			log.Println("Connected to", config.Hostname, "!")
 			for _, channel := range config.Channels {
 				conn.Join(channel)
 			}
 		})
 	quit := make(chan bool)
-	c.AddHandler(irc.DISCONNECTED, func(conn *irc.Conn, line *irc.Line) { quit <- true })
+	c.AddHandler("JOIN", func(conn *irc.Conn, line *irc.Line) { 
+		if line.Nick == config.BotName {
+			log.Printf("Joined %+v\n", line.Args)
+		}
+	})
+	c.AddHandler(irc.DISCONNECTED, func(conn *irc.Conn, line *irc.Line) { 
+		log.Println("Disconnected. Quitting.")
+		quit <- true 
+	})
 	c.AddHandler("PRIVMSG", func(conn *irc.Conn, line *irc.Line) {
 		messageReceived(conn, line)
 	})
