@@ -7,10 +7,16 @@ import (
 	"gesture/util"
 	"regexp"
 	"strings"
+	"log"
 )
 
 var (
-	linkPrefixes    = []string{"t.co", "cl.ly", "www", "bit.ly", "j.mp", "tcrn.ch", "http"}
+	linkPrefixes    = []*regexp.Regexp{
+		makeLinkRe("t.co"), 
+		makeLinkRe("cl.ly"), 
+		makeLinkRe("bit.ly"),
+		makeLinkRe("j.mp"), 
+		makeLinkRe("tcrn.ch")}
 	expanders       = []expander{expandUrl, expandEmbeddedImages}
 	embeddedRePairs = []embeddedRePair{
 		makeRePair(`(http://)?(www\.)?cl\.ly[^\s]+`, `a class="embed".*(http://cl\.ly[^"]+)`, 1),
@@ -20,6 +26,10 @@ var (
 		makeRePair(`(https?://)?(www\.)?twitter\.com.*photo?[^\s]+`, `img.*media-slideshow-image.*src="(https?://[^"]+):.*".*`, 1),
 	}
 )
+
+func makeLinkRe(part string) *regexp.Regexp {
+	return regexp.MustCompile("^(http|https)?(://)?(www.)?" + part)
+}
 
 func makeRePair(link string, image string, imageSubmatch int) embeddedRePair {
 	return embeddedRePair{
@@ -109,8 +119,8 @@ func expandEmbeddedImages(url string) (result string, err error) {
 // expandUrl is an expander that expands shortened links
 func expandUrl(url string) (result string, err error) {
 	prefixFound := false
-	for _, prefix := range linkPrefixes {
-		if strings.HasPrefix(url, prefix) {
+	for _, prefixRE := range linkPrefixes {
+		if found := prefixRE.FindString(url); found != "" {
 			prefixFound = true
 			break
 		}
@@ -121,5 +131,6 @@ func expandUrl(url string) (result string, err error) {
 	if !strings.HasPrefix(url, "http") {
 		url = "http://" + url
 	}
+	log.Println("Resolving url", url)
 	return util.ResolveRedirects(url)
 }
