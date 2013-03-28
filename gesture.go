@@ -126,12 +126,6 @@ func messageReceived(conn *irc.Conn, line *irc.Line) {
 	}
 }
 
-// when an error occurs, calling this method will send the error back to the irc channel
-func sendError(conn *irc.Conn, channel string, nick string, err error) {
-	log.Print(err)
-	conn.Privmsg(channel, fmt.Sprintf("%s: oops: %v", nick, err))
-}
-
 type messageContext struct {
 	conn *irc.Conn
 	line *irc.Line
