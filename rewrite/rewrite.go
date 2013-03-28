@@ -4,17 +4,13 @@
 package rewrite
 
 import (
-	"errors"
-	"fmt"
-	"io/ioutil"
-	"net/http"
 	"regexp"
 	"strings"
+	"gesture/util"
 )
 
 var (
 	linkPrefixes    = []string{"t.co", "cl.ly", "www", "bit.ly", "j.mp", "tcrn.ch", "http"}
-	httpClient      = &http.Client{}
 	expanders       = []expander{expandUrl, expandEmbeddedImages}
 	embeddedRePairs = []embeddedRePair{
 		makeRePair(`(http://)?(www\.)?cl\.ly[^\s]+`, `a class="embed".*(http://cl\.ly[^"]+)`, 1),
@@ -98,14 +94,7 @@ func expandAll(input string) (string, error) {
 func expandEmbeddedImages(url string) (result string, err error) {
 	for _, rePair := range embeddedRePairs {
 		if found := rePair.link.FindString(url); found != "" {
-			resp, err := httpClient.Get(found)
-			if err != nil {
-				return "", err
-			}
-			if resp.StatusCode >= 300 {
-				return "", errors.New(fmt.Sprintf("Bad response code: %d", resp.StatusCode))
-			}
-			body, err := ioutil.ReadAll(resp.Body)
+			body, err := util.GetUrl(found)
 			if err != nil {
 				return "", err
 			}
@@ -129,18 +118,8 @@ func expandUrl(url string) (result string, err error) {
 	if !prefixFound {
 		return "", nil
 	}
-
 	if !strings.HasPrefix(url, "http") {
 		url = "http://" + url
 	}
-	resp, err := httpClient.Head(url) // will follow redirects
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close() // not sure if i have to do this with a head response
-	expanded := resp.Request.URL.String()
-	if expanded != url {
-		return expanded, nil
-	}
-	return "", nil
+	return util.ResolveRedirects(url)
 }

@@ -5,11 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"gesture/plugin"
-	"io/ioutil"
 	"math/rand"
-	"net/http"
 	"net/url"
 	"strings"
+	"gesture/util"
 )
 
 // lol types
@@ -45,23 +44,10 @@ type gisResponse struct {
 	Results []gisResult
 }
 
-var (
-	HttpClient = &http.Client{}
-)
-
 // Search queries google for some images, and then randomly selects one
 func search(search string) (result string, err error) {
 	url := "http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=" + url.QueryEscape(search)
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return "", err
-	}
-	resp, err := HttpClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := util.GetUrl(url)
 	if err != nil {
 		return "", err
 	}

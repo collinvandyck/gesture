@@ -3,19 +3,15 @@ package twitter
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"gesture/plugin"
-	"io/ioutil"
-	"log"
-	"net/http"
 	"regexp"
 	"strings"
+	"gesture/util"
 )
 
 var (
 	commandRegex = regexp.MustCompile(`^https?://(www.)?twitter.com/.*?/status/.*$`)
-	httpClient   = &http.Client{}
 )
 
 // lol types. we don't need to keep state so i guess we'll just use bool
@@ -63,16 +59,7 @@ func getTweet(url string) (result string, err error) {
 	if tweetId == "" {
 		return "", nil
 	}
-	tweetUrl := "https://api.twitter.com/1/statuses/show/" + tweetId + ".json"
-	resp, err := httpClient.Get(tweetUrl)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode >= 300 {
-		return "", errors.New(fmt.Sprintf("Response status code was %d", resp.StatusCode))
-	}
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := util.GetUrl("https://api.twitter.com/1/statuses/show/" + tweetId + ".json")
 	if err != nil {
 		return "", err
 	}
@@ -85,13 +72,7 @@ func getTweet(url string) (result string, err error) {
 }
 
 func describe(user string) (result string, err error) {
-	url := "http://api.twitter.com/1/users/lookup.json?include_entities=true&screen_name=" + user
-	resp, err := httpClient.Get(url)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := util.GetUrl("http://api.twitter.com/1/users/lookup.json?include_entities=true&screen_name=" + user)
 	if err != nil {
 		return "", err
 	}
@@ -112,14 +93,7 @@ func GetStatus(url string) (result string, err error) {
 	}
 	pieces := strings.Split(url, "/")
 	id := pieces[len(pieces)-1]
-	statusUrl := "https://api.twitter.com/1/statuses/show/" + id + ".json"
-	log.Printf("Getting status for url %s\n", statusUrl)
-	resp, err := httpClient.Get(statusUrl)
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := util.GetUrl("https://api.twitter.com/1/statuses/show/" + id + ".json")
 	if err != nil {
 		return "", err
 	}
