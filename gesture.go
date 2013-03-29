@@ -8,6 +8,7 @@ import (
 	"gesture/plugin/gis"
 	"gesture/plugin/graphite"
 	"gesture/plugin/identity"
+	"gesture/plugin/memegenerator"
 	"gesture/plugin/twitter"
 	"gesture/plugin/youtube"
 	"gesture/rewrite"
@@ -29,6 +30,10 @@ type Config struct {
 	SSL            bool
 	Channels       []string
 	GraphitePrefix string
+	Memegenerator  *struct {
+		Username string
+		Password string
+	}
 }
 
 // readsConfig unmarshals the config from a file and returns the struct
@@ -66,12 +71,16 @@ func main() {
 	plugins = []plugin.Plugin{
 		twitter.NewPlugin(),
 		gis.NewPlugin(),
-    youtube.NewPlugin(),
+		youtube.NewPlugin(),
 		identity.NewPlugin(config.BotName),
 	}
 
 	if config.GraphitePrefix != "" {
 		plugins = append(plugins, graphite.NewPlugin(config.GraphitePrefix))
+	}
+
+	if config.Memegenerator != nil {
+		plugins = append(plugins, memegenerator.New(config.Memegenerator.Username, config.Memegenerator.Password))
 	}
 
 	flag.Parse()

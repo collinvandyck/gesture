@@ -5,17 +5,17 @@ package rewrite
 
 import (
 	"gesture/util"
+	"log"
 	"regexp"
 	"strings"
-	"log"
 )
 
 var (
-	linkPrefixes    = []*regexp.Regexp{
-		makeLinkRe("t.co"), 
-		makeLinkRe("cl.ly"), 
+	linkPrefixes = []*regexp.Regexp{
+		makeLinkRe("t.co"),
+		makeLinkRe("cl.ly"),
 		makeLinkRe("bit.ly"),
-		makeLinkRe("j.mp"), 
+		makeLinkRe("j.mp"),
 		makeLinkRe("tcrn.ch")}
 	expanders       = []expander{expandUrl, expandEmbeddedImages}
 	embeddedRePairs = []embeddedRePair{
