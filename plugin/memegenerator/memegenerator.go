@@ -24,7 +24,7 @@ func New(username, password string) plugin.Plugin {
 
 func (mg mg) Call(mc plugin.MessageContext) (bool, error) {
 	if match := notSureIf.FindStringSubmatch(mc.Message()); match != nil {
-		return generate(mg, mc, 305, 84688, match[1] + " if "+match[2], "or "+match[3])
+		return generate(mg, mc, 305, 84688, match[1]+" if "+match[2], "or "+match[3])
 	}
 	return false, nil
 }

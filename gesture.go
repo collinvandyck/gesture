@@ -11,6 +11,7 @@ import (
 	"gesture/plugin/memegenerator"
 	"gesture/plugin/twitter"
 	"gesture/plugin/youtube"
+	"gesture/plugin/bees"
 	"gesture/rewrite"
 	irc "github.com/fluffle/goirc/client"
 	"io/ioutil"
@@ -73,6 +74,7 @@ func main() {
 		gis.NewPlugin(),
 		youtube.NewPlugin(),
 		identity.NewPlugin(config.BotName),
+		bees.New(),
 	}
 
 	if config.GraphitePrefix != "" {
