@@ -4,33 +4,21 @@ package gis
 import (
 	"encoding/json"
 	"errors"
-	"gesture/plugin"
+	"gesture/core"
 	"gesture/util"
 	"math/rand"
 	"net/url"
 	"strings"
 )
 
-// lol types
-type GisPlugin bool
-
-// lol types
-func NewPlugin() GisPlugin {
-	return GisPlugin(false)
-}
-
-func (gis GisPlugin) Call(mc plugin.MessageContext) (bool, error) {
-	if mc.Command() == "gis" {
-		if len(mc.CommandArgs()) > 0 {
-			link, err := search(strings.Join(mc.CommandArgs(), " "))
-			if err != nil {
-				return false, err
-			} else {
-				mc.Ftfy(link)
-			}
+func Create(bot *core.Gobot) {
+	bot.ListenFor("^gis", func(msg core.Message, matches []string) error {
+		link, err := search(strings.SplitN(msg.Text, " ", 2)[1])
+		if err == nil {
+			msg.Ftfy(link)
 		}
-	}
-	return false, nil
+		return err
+	})
 }
 
 // these structs really tie the room together, man
@@ -62,7 +50,7 @@ func search(search string) (result string, err error) {
 			}
 		}
 	}
-	return "", errors.New("No image could be found for " + search)
+	return "", errors.New("No image could be found for \"" + search + "\"")
 }
 
 // returns true if the url ends with some well known suffixes

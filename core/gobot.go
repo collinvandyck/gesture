@@ -70,7 +70,8 @@ func (bot *Gobot) Disconnect() {
 
 // Add a listener that matches incoming messages based on the given regexp.
 // Matched messages and any submatches are returned to the callback.
-func (bot *Gobot) ListenFor(re *regexp.Regexp, cb func(Message, []string) error) {
+func (bot *Gobot) ListenFor(pattern string, cb func(Message, []string) error) {
+	re := regexp.MustCompile(pattern)
 	bot.listeners = append(bot.listeners, listener{re, cb})
 }
 
@@ -80,11 +81,6 @@ func (bot *Gobot) ListenFor(re *regexp.Regexp, cb func(Message, []string) error)
 
 // -------------------------------------------------------------------
 // GOBOT'S ROOM, KEEP OUT
-
-func (bot *Gobot) configurePlugings(config *Config) {
-	//	twitter.Create(bot)
-	//	gis.Create(bot)
-}
 
 func (bot *Gobot) messageReceived(conn *irc.Conn, line *irc.Line) {
 	if len(line.Args) > 1 {
