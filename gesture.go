@@ -4,6 +4,7 @@ package main
 import (
 	"encoding/json"
 	"gesture/core"
+	"gesture/plugin/bees"
 	"gesture/plugin/gis"
 	"io/ioutil"
 	"log"
@@ -30,6 +31,7 @@ func readConfig(filename string) (*core.Config, error) {
 
 func loadPlugins(bot *core.Gobot) {
 	gis.Create(bot)
+	bees.Create(bot)
 }
 
 func main() {
