@@ -7,6 +7,7 @@ import (
 	"gesture/plugin/bees"
 	"gesture/plugin/gis"
 	"gesture/plugin/twitter"
+	"gesture/plugin/youtube"
 	"io/ioutil"
 	"log"
 	"os"
@@ -34,6 +35,7 @@ func loadPlugins(bot *core.Gobot) {
 	gis.Create(bot)
 	bees.Create(bot)
 	twitter.Create(bot)
+	youtube.Create(bot)
 }
 
 func main() {
