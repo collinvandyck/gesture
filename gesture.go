@@ -6,6 +6,7 @@ import (
 	"gesture/core"
 	"gesture/plugin/bees"
 	"gesture/plugin/gis"
+	"gesture/plugin/graphite"
 	"gesture/plugin/identity"
 	"gesture/plugin/memegenerator"
 	"gesture/plugin/twitter"
@@ -40,6 +41,7 @@ func loadPlugins(bot *core.Gobot) {
 	youtube.Create(bot)
 	identity.Create(bot)
 	memegenerator.Create(bot)
+	graphite.Create(bot)
 }
 
 func main() {
