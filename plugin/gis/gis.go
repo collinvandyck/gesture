@@ -12,8 +12,8 @@ import (
 )
 
 func Create(bot *core.Gobot) {
-	bot.ListenFor("^gis", func(msg core.Message, matches []string) error {
-		link, err := search(strings.SplitN(msg.Text, " ", 2)[1])
+	bot.ListenFor("^gis (.*)", func(msg core.Message, matches []string) error {
+		link, err := search(matches[1])
 		if err == nil {
 			msg.Ftfy(link)
 		}
