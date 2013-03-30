@@ -1,19 +1,12 @@
 package bees
 
 import (
-	"gesture/plugin"
-	"strings"
+	"gesture/core"
 )
 
-type Plugin bool
-
-func New() Plugin {
-	return Plugin(true)
-}
-
-func (p Plugin) Call(mc plugin.MessageContext) (bool, error) {
-	if strings.Contains(mc.Message(), "bees") {
-		mc.Send("http://i.imgur.com/qrLEV.gif")
-	}
-	return false, nil
+func Create(bot *core.Gobot){
+	bot.ListenFor("bee(e*)s", func(msg core.Message, matches []string) error {
+		msg.Send("http://i.imgur.com/qrLEV.gif")
+		return nil
+	})
 }
