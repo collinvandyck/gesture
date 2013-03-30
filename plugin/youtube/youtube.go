@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"gesture/core"
 	"gesture/util"
+	"log"
 	"math/rand"
 	"net/url"
 	"regexp"
@@ -16,10 +17,14 @@ import (
 var urlCleaner = regexp.MustCompile(`&feature=youtube_gdata_player`)
 
 func Create(bot *core.Gobot) {
-	results := 3 // TODO: Read this out of the config!
+	results, ok := bot.Config.Plugins["youtube"]["results"].(float64)
+	if !ok {
+		log.Print("Failed to load config for 'youtube' plugin. Using default result count of 1")
+		results = 1
+	}
 
 	bot.ListenFor("^yt (.*)", func(msg core.Message, matches []string) error {
-		link, err := search(matches[1], results)
+		link, err := search(matches[1], int(results))
 		if err == nil && link != "" {
 			msg.Ftfy(link)
 		}

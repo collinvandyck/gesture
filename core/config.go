@@ -9,15 +9,11 @@ import (
 )
 
 type Config struct {
-	BotName        string
-	Hostname       string
-	SSL            bool
-	Channels       []string
-	GraphitePrefix string
-	Memegenerator  *struct {
-		Username string
-		Password string
-	}
+	BotName  string
+	Hostname string
+	SSL      bool
+	Channels []string
+	Plugins  map[string]map[string]interface{}
 }
 
 func readConfig(filename string) (*Config, error) {
