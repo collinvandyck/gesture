@@ -6,6 +6,7 @@ import (
 	"gesture/core"
 	"gesture/plugin/bees"
 	"gesture/plugin/gis"
+	"gesture/plugin/twitter"
 	"io/ioutil"
 	"log"
 	"os"
@@ -32,6 +33,7 @@ func readConfig(filename string) (*core.Config, error) {
 func loadPlugins(bot *core.Gobot) {
 	gis.Create(bot)
 	bees.Create(bot)
+	twitter.Create(bot)
 }
 
 func main() {
