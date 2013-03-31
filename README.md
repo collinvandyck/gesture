@@ -1,7 +1,7 @@
 # What is this?
 
 * gesture is an irc bot.
-* is is an descendent of the allmighty <a href="github.com/dietrichf/jester">jester</a>.
+* is is an descendent of the allmighty <a href="http://github.com/dietrichf/jester">jester</a>.
 * it runs on a plugin structure, still under construction, kinda like hubot.
 
 # How do I plugin?
