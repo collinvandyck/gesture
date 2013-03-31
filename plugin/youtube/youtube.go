@@ -1,82 +1,65 @@
 // A Gesture interface to various YouTubery
 package youtube
 
-import "fmt"
-import "errors"
-import "regexp"
-import "strings"
-import "net/url"
-import "math/rand"
-import "encoding/json"
-
-import "gesture/util"
-import "gesture/plugin"
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"gesture/core"
+	"gesture/util"
+	"log"
+	"math/rand"
+	"net/url"
+	"regexp"
+)
 
 // A YouTube plugin 
-type YouTubePlugin struct {
-	Results int
-}
-
 var urlCleaner = regexp.MustCompile(`&feature=youtube_gdata_player`)
-var toob = YouTubePlugin{10} // Start with top 3 by relevance right now. Why not?
 
-func NewPlugin() YouTubePlugin {
-	return toob
-}
-
-// =============================================================================
-// Plugin methods
-
-func (plugin YouTubePlugin) Call(mc plugin.MessageContext) (success bool, err error) {
-	success = false
-
-	if mc.Command() == "yt" {
-		if len(mc.CommandArgs()) > 0 {
-			results, err := search(strings.Join(mc.CommandArgs(), " "), plugin.Results)
-			if err != nil {
-				return false, err
-			}
-
-			picked, err := pickRandomUrl(results)
-			if err != nil {
-				return false, err
-			}
-			picked = urlCleaner.ReplaceAllLiteralString(picked, " ")
-
-			mc.Ftfy(picked)
-		}
-		success = true
+func Create(bot *core.Gobot) {
+	results, ok := bot.Config.Plugins["youtube"]["results"].(float64)
+	if !ok {
+		log.Print("Failed to load config for 'youtube' plugin. Using default result count of 1")
+		results = 1
 	}
-	return
-}
 
-// =============================================================================
-// Functions
-
-// Picks a random item from an array of youTubeItems and returns the url of the
-// default player for that video.
-func pickRandomUrl(videos []youTubeItem) (string, error) {
-	if len(videos) > 0 {
-		ordering := rand.Perm(len(videos))
-		for _, i := range ordering {
-			return videos[i].Player.Default, nil
+	bot.ListenFor("^yt (.*)", func(msg core.Message, matches []string) error {
+		link, err := search(matches[1], int(results))
+		if err == nil && link != "" {
+			msg.Ftfy(link)
 		}
-	}
-	return "", errors.New("Can't sort an empty list!")
+		return err
+	})
 }
 
-// Search youtube for the given query string. Returns the first N youTubeItems
-// returned by the YouTube search API. 
-func search(query string, results int) ([]youTubeItem, error) {
+// Search youtube for the given query string. Returns one of the first N youtube
+// results for that search at random (everyone loves entropy!)
+// Returns an empty string if there were no results for that query
+func search(query string, results int) (link string, err error) {
 	body, err := util.GetUrl(buildSearchUrl(query, results))
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	var searchResponse youTubeResponse
 	json.Unmarshal(body, &searchResponse)
 
-	return searchResponse.Data.Items, nil
+	videos := searchResponse.Data.Items
+	switch l := len(videos); {
+	case l > 1:
+		ordering := rand.Perm(len(videos))
+		for _, i := range ordering {
+			// Youtube adds a fragment to the end of players accessed via the API. Get
+			// rid of that shit.
+			link = urlCleaner.ReplaceAllLiteralString(videos[i].Player.Default, "")
+		}
+	case l == 1:
+		link = urlCleaner.ReplaceAllLiteralString(videos[0].Player.Default, "")
+	case l == 0:
+		err = errors.New("No video found for search \"" + query + "\"")
+	}
+
+	return
 }
 
 // Generate a search URL for the given query. Returns the requested number of
@@ -87,7 +70,6 @@ func buildSearchUrl(query string, results int) string {
 	return fmt.Sprintf(searchString, escapedQuery, results)
 }
 
-// -----------------------------------------------------------------------------
 // YouTube response types for deserializing JSON
 type youTubePlayer struct {
 	Default string
@@ -105,6 +87,6 @@ type youTubeData struct {
 }
 
 type youTubeResponse struct {
-	ApiVersion string      `json:"apiVersion"`
-	Data       youTubeData `json:"data"`
+	ApiVersion string
+	Data       youTubeData
 }

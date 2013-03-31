@@ -2,23 +2,20 @@
 package identity
 
 import (
-	"gesture/plugin"
-	"strings"
+	"fmt"
+	"gesture/core"
 )
 
-type Plugin struct {
-	name string
-}
+func Create(bot *core.Gobot) {
+	name := bot.Name
 
-func NewPlugin(name string) Plugin {
-	return Plugin{name: name}
-}
+	bot.ListenFor(fmt.Sprintf("kill %s", name), func(msg core.Message, matches []string) error {
+		msg.Reply("EAT SHIT")
+		return nil
+	})
 
-func (me Plugin) Call(mc plugin.MessageContext) (bool, error) {
-	for _, token := range strings.Split(mc.Message(), " ") {
-		if token == me.name {
-			mc.Reply("i am halping")
-		}
-	}
-	return false, nil
+	bot.ListenFor(fmt.Sprintf("(hey|h(a?)i|hello) %s", name), func(msg core.Message, matches []string) error {
+		msg.Send(fmt.Sprintf("why, hello there %s", msg.User))
+		return nil
+	})
 }

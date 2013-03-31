@@ -2,25 +2,25 @@
 package graphite
 
 import (
-	"gesture/plugin"
+	"fmt"
+	"gesture/core"
+	"log"
 	"strings"
 )
 
-type Plugin struct {
-	graphitePrefix string
-}
-
-func NewPlugin(graphitePrefix string) Plugin {
-	return Plugin{graphitePrefix}
-}
-
-func (me Plugin) Call(mc plugin.MessageContext) (bool, error) {
-	for _, token := range strings.Split(mc.Message(), " ") {
-		if strings.HasPrefix(token, me.graphitePrefix) {
-			if !strings.HasSuffix(token, ".png") {
-				mc.Ftfy(token + "&lol.png")
-			}
-		}
+func Create(bot *core.Gobot) {
+	prefix, found := bot.Config.Plugins["graphite"]["prefix"].(string)
+	if !found {
+		log.Printf("Can't find graphite prefix!")
+		return
 	}
-	return false, nil
+
+	pattern := fmt.Sprintf(`%s(\S+)`, prefix)
+	bot.ListenFor(pattern, func(msg core.Message, matches []string) error {
+		url := matches[0]
+		if !strings.HasSuffix(url, ".png") {
+			msg.Ftfy(url + "&lol.png")
+		}
+		return nil
+	})
 }
