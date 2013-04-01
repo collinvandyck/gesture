@@ -1,5 +1,5 @@
 // A Gesture interface to various YouTubery
-package youtube
+package plugin 
 
 import (
 	"encoding/json"
@@ -7,35 +7,46 @@ import (
 	"fmt"
 	"gesture/core"
 	"gesture/util"
-	"log"
 	"math/rand"
 	"net/url"
 	"regexp"
 )
 
-// A YouTube plugin 
-var urlCleaner = regexp.MustCompile(`&feature=youtube_gdata_player`)
+func init() {
+	core.Register(YouTube{})
+}
 
-func Create(bot *core.Gobot) {
+type YouTube struct {}
+
+func (yt YouTube) Name() string {
+	return "youtube"
+}
+
+func (yt YouTube) Create(bot *core.Gobot) (usingDefault error) {
 	results, ok := bot.Config.Plugins["youtube"]["results"].(float64)
 	if !ok {
-		log.Print("Failed to load config for 'youtube' plugin. Using default result count of 1")
+		usingDefault = errors.New("Failed to load config for 'youtube' plugin. Using default result count of 1")
 		results = 1
 	}
 
 	bot.ListenFor("^yt (.*)", func(msg core.Message, matches []string) error {
-		link, err := search(matches[1], int(results))
+		link, err := yt.search(matches[1], int(results))
 		if err == nil && link != "" {
 			msg.Ftfy(link)
 		}
 		return err
 	})
+
+	return usingDefault
 }
+
+
+var urlCleaner = regexp.MustCompile(`&feature=youtube_gdata_player`)
 
 // Search youtube for the given query string. Returns one of the first N youtube
 // results for that search at random (everyone loves entropy!)
 // Returns an empty string if there were no results for that query
-func search(query string, results int) (link string, err error) {
+func (yt YouTube) search(query string, results int) (link string, err error) {
 	body, err := util.GetUrl(buildSearchUrl(query, results))
 	if err != nil {
 		return
