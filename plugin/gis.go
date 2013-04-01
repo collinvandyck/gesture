@@ -23,7 +23,7 @@ func (gis Gis) Name() string {
 
 func (gis Gis) Create(bot *core.Gobot) (err error) {
 	bot.ListenFor("^gis (.*)", func(msg core.Message, matches []string) error {
-		link, err := search(matches[1])
+		link, err := gis.search(matches[1])
 		if err == nil {
 			msg.Ftfy(link)
 		}
