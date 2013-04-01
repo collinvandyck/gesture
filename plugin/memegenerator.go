@@ -1,20 +1,28 @@
-package memegenerator
+package plugin 
 
 import (
 	"encoding/json"
 	"errors"
 	"gesture/core"
 	"gesture/util"
-	"log"
 	neturl "net/url"
 	"strconv"
 )
 
-func Create(bot *core.Gobot) {
+type Memegenerator struct{}
+
+func init() {
+	core.Register(Memegenerator{})
+}
+
+func (mg Memegenerator) Name() string {
+	return "memegenerator"
+}
+
+func (mg Memegenerator) Create(bot *core.Gobot) error {
 	username, password, err := loadCredentials(bot.Config.Plugins["memegenerator"])
 	if err != nil {
-		log.Printf("Error starting up memegenerator plugin: %s", err)
-		return
+		return err
 	}
 
 	fry := memeGen{username, password, fryGenerator, fryImage}
@@ -26,6 +34,8 @@ func Create(bot *core.Gobot) {
 		}
 		return err
 	})
+
+	return nil
 }
 
 func loadCredentials(config map[string]interface{}) (string, string, error) {
