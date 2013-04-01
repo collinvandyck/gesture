@@ -45,7 +45,7 @@ type gisResponse struct {
 }
 
 // Search queries google for some images, and then randomly selects one
-func search(search string) (result string, err error) {
+func (gis Gis) search(search string) (result string, err error) {
 	url := "http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=" + url.QueryEscape(search)
 	body, err := util.GetUrl(url)
 	if err != nil {
