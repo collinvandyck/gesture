@@ -1,5 +1,5 @@
 // does twitter related things
-package twitter
+package plugin 
 
 import (
 	"encoding/json"
@@ -8,8 +8,17 @@ import (
 	"gesture/util"
 )
 
+func init() {
+	core.Register(Twitter{})
+}
 
-func Create(bot *core.Gobot) {
+type Twitter struct{}
+
+func (tw Twitter) Name() string {
+	return "twitter"
+}
+
+func (tw Twitter) Create(bot *core.Gobot) error {
 	bot.ListenFor("^describe (\\w+)", func(msg core.Message, matches []string) error {
 		described, err := describe(matches[1])
 		if err == nil {
@@ -25,6 +34,8 @@ func Create(bot *core.Gobot) {
 		}
 		return err
 	})
+
+	return nil
 }
 
 func getTweet(tweetId string) (result string, err error) {
