@@ -1,5 +1,5 @@
 // Google Image Search functionality
-package gis
+package plugin
 
 import (
 	"encoding/json"
@@ -11,7 +11,17 @@ import (
 	"strings"
 )
 
-func Create(bot *core.Gobot) {
+func init() {
+	core.Register(Gis{})
+}
+
+type Gis struct{}
+
+func (gis Gis) Name() string {
+	return "gis"
+}
+
+func (gis Gis) Create(bot *core.Gobot) (err error) {
 	bot.ListenFor("^gis (.*)", func(msg core.Message, matches []string) error {
 		link, err := search(matches[1])
 		if err == nil {
@@ -19,6 +29,8 @@ func Create(bot *core.Gobot) {
 		}
 		return err
 	})
+
+	return
 }
 
 // these structs really tie the room together, man
