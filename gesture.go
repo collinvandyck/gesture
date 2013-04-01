@@ -4,13 +4,7 @@ package main
 import (
 	"encoding/json"
 	"gesture/core"
-	"gesture/plugin/bees"
-	"gesture/plugin/gis"
-	"gesture/plugin/graphite"
-	"gesture/plugin/identity"
-	"gesture/plugin/memegenerator"
-	"gesture/plugin/twitter"
-	"gesture/plugin/youtube"
+	"gesture/plugin"
 	"io/ioutil"
 	"log"
 	"os"
@@ -34,22 +28,13 @@ func readConfig(filename string) (*core.Config, error) {
 
 }
 
-func loadPlugins(bot *core.Gobot) {
-	gis.Create(bot)
-	bees.Create(bot)
-	twitter.Create(bot)
-	youtube.Create(bot)
-	identity.Create(bot)
-	memegenerator.Create(bot)
-	graphite.Create(bot)
-}
-
 func main() {
 	if len(os.Args) < 2 {
 		log.Println("usage: gesture conf_file")
 		os.Exit(1)
 	}
 
+	plugin.Init()
 	config, err := readConfig(os.Args[1])
 	if err != nil {
 		log.Println(err)
@@ -57,7 +42,6 @@ func main() {
 	}
 
 	bot := core.CreateGobot(config)
-	loadPlugins(bot)
 	quit, err := bot.Connect(config.Hostname)
 	if err != nil {
 		log.Fatalf("Failed to connect: %s", err)
