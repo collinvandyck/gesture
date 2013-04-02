@@ -2,7 +2,7 @@
 package main
 
 import (
-	"encoding/json"
+	"flag"
 	"gesture/core"
 	"gesture/plugin/bees"
 	"gesture/plugin/gis"
@@ -11,28 +11,8 @@ import (
 	"gesture/plugin/memegenerator"
 	"gesture/plugin/twitter"
 	"gesture/plugin/youtube"
-	"io/ioutil"
 	"log"
-	"os"
 )
-
-func readConfig(filename string) (*core.Config, error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	var config core.Config
-	b, err := ioutil.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
-	if err = json.Unmarshal(b, &config); err != nil {
-		return nil, err
-	}
-	return &config, nil
-
-}
 
 func loadPlugins(bot *core.Gobot) {
 	gis.Create(bot)
@@ -45,15 +25,16 @@ func loadPlugins(bot *core.Gobot) {
 }
 
 func main() {
-	if len(os.Args) < 2 {
-		log.Println("usage: gesture conf_file")
-		os.Exit(1)
+	// Parse command-line arguments in logging package
+	flag.Parse()
+	args := flag.Args()
+	if len(args) != 1 {
+		log.Fatalln("usage: gesture conf_file")
 	}
 
-	config, err := readConfig(os.Args[1])
+	config, err := core.ReadConfig(args[0])
 	if err != nil {
-		log.Println(err)
-		os.Exit(1)
+		log.Fatalln(err)
 	}
 
 	bot := core.CreateGobot(config)

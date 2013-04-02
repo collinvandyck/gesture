@@ -4,30 +4,29 @@ package core
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"os"
 )
 
 type Config struct {
-	BotName  string
-	Hostname string
-	SSL      bool
-	Channels []string
-	Plugins  map[string]map[string]interface{}
+	// By default, goirc enables this
+	DisableFloodProtection bool
+	BotName                string
+	Hostname               string
+	SSL                    bool
+	Channels               []string
+	Plugins                map[string]map[string]interface{}
 }
 
-func readConfig(filename string) (*Config, error) {
+func ReadConfig(filename string) (*Config, error) {
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 	var config Config
-	b, err := ioutil.ReadAll(file)
+	dec := json.NewDecoder(file)
+	err = dec.Decode(&config)
 	if err != nil {
-		return nil, err
-	}
-	if err = json.Unmarshal(b, &config); err != nil {
 		return nil, err
 	}
 	return &config, nil
