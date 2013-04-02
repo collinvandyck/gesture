@@ -8,11 +8,11 @@ import (
 )
 
 type Message struct {
-	conn *irc.Conn
-	line *irc.Line
-	User string
+	conn    *irc.Conn
+	line    *irc.Line
+	User    string
 	Channel string
-	Text string
+	Text    string
 }
 
 func (msg *Message) Send(message string) {
