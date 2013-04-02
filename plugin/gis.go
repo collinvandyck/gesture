@@ -1,5 +1,5 @@
 // Google Image Search functionality
-package gis
+package plugin
 
 import (
 	"encoding/json"
@@ -11,14 +11,26 @@ import (
 	"strings"
 )
 
-func Create(bot *core.Gobot) {
+func init() {
+	core.Register(Gis{})
+}
+
+type Gis struct{}
+
+func (gis Gis) Name() string {
+	return "gis"
+}
+
+func (gis Gis) Create(bot *core.Gobot) (err error) {
 	bot.ListenFor("^gis (.*)", func(msg core.Message, matches []string) error {
-		link, err := search(matches[1])
+		link, err := gis.search(matches[1])
 		if err == nil {
 			msg.Ftfy(link)
 		}
 		return err
 	})
+
+	return
 }
 
 // these structs really tie the room together, man
@@ -33,7 +45,7 @@ type gisResponse struct {
 }
 
 // Search queries google for some images, and then randomly selects one
-func search(search string) (result string, err error) {
+func (gis Gis) search(search string) (result string, err error) {
 	url := "http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=" + url.QueryEscape(search)
 	body, err := util.GetUrl(url)
 	if err != nil {

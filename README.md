@@ -6,22 +6,48 @@
 
 # How do I plugin?
 
-You will want to create a package in plugin/{packageName}.  For example,
+
+Plugins are required to know their own name and to be able to initialize themselves given a reference to the Gobot that they'll be plugged into.
+
+```
+type Plugin interface {
+    Name() string
+    Create(bot *Gobot) error
+}
+```
+
+Gesture loads plugins from a global registry. To make your plugin available, call `core.Register` in your plugin file's `init()` function.
+
+Here's an example of a simple plugin:
 	
-	# plugin/bees/bees.go
+```go
+// in plugin/bees.go
+package plugin 
 
-	package bees
+import (
+	"gesture/core"
+)
 
-	import (
-		"gesture/core"
-	)
+func init() {
+	core.Register(Bees{})
+}
 
-	func Create(bot *core.Gobot){
-		bot.ListenFor("bee(e*)s", func(msg core.Message, matches []string) error {
-			msg.Send("http://i.imgur.com/qrLEV.gif")
-			return nil
-		})
-	}
+type Bees struct{}
+
+func (bees Bees) Name() string {
+	return "bees"
+}
+
+func (bees Bees) Create(bot *core.Gobot) error {
+	bot.ListenFor("bee(e*)s", func(msg core.Message, matches []string) error {
+		msg.Send("http://i.imgur.com/qrLEV.gif")
+		return nil
+	})
+
+	return nil
+}
+```
+
 
 
 The Create(*core.Gobot) method allows the bot to register itself as a listener for particular regular expressions.  If something arrives on a channel that matches the regular expression, the plugin will be called with the Message along with any matching groups from the regular expression. The plugin is then able to reply back on that channel.

@@ -22,34 +22,13 @@ type Gobot struct {
 // Tell Gobot how to be a Real Boy
 
 // Create a new Gobot from the given gesture config
-func CreateGobot(config *Config) *Gobot {
-	bot := &Gobot{config.BotName, config, nil, make(chan bool), nil}
+func CreateGobot(conf *Config) *Gobot {
+	bot := &Gobot{conf.BotName, conf, nil, make(chan bool), nil}
 
-	flag.Parse()
-	bot.client = irc.SimpleClient(config.BotName)
-	bot.client.SSL = config.SSL
-
-	bot.client.AddHandler(irc.CONNECTED,
-		func(conn *irc.Conn, line *irc.Line) {
-			log.Println("Connected to", config.Hostname, "!")
-			for _, channel := range config.Channels {
-				conn.Join(channel)
-			}
-		})
-
-	bot.client.AddHandler("JOIN", func(conn *irc.Conn, line *irc.Line) {
-		if line.Nick == bot.Name {
-			log.Printf("Joined %+v\n", line.Args)
-		}
-	})
-
-	bot.client.AddHandler(irc.DISCONNECTED, func(conn *irc.Conn, line *irc.Line) {
-		bot.quitter <- true
-	})
-
-	bot.client.AddHandler("PRIVMSG", func(conn *irc.Conn, line *irc.Line) {
-		bot.messageReceived(conn, line)
-	})
+	bot.setupIrc(conf)
+	// TODO: Add enabled/disabled plugins to the config
+	var enabled, disabled []string
+	bot.loadPlugins(enabled, disabled)
 
 	return bot
 }
@@ -81,6 +60,47 @@ func (bot *Gobot) ListenFor(pattern string, cb func(Message, []string) error) {
 
 // -------------------------------------------------------------------
 // GOBOT'S ROOM, KEEP OUT
+
+func (bot *Gobot) setupIrc(conf *Config) {
+	flag.Parse()
+	bot.client = irc.SimpleClient(conf.BotName)
+	bot.client.SSL = conf.SSL
+
+	bot.client.AddHandler(irc.CONNECTED,
+		func(conn *irc.Conn, line *irc.Line) {
+			log.Println("Connected to", conf.Hostname, "!")
+			for _, channel := range conf.Channels {
+				conn.Join(channel)
+			}
+		})
+
+	bot.client.AddHandler("JOIN", func(conn *irc.Conn, line *irc.Line) {
+		if line.Nick == bot.Name {
+			log.Printf("Joined %+v\n", line.Args)
+		}
+	})
+
+	bot.client.AddHandler(irc.DISCONNECTED, func(conn *irc.Conn, line *irc.Line) {
+		bot.quitter <- true
+	})
+
+	bot.client.AddHandler("PRIVMSG", func(conn *irc.Conn, line *irc.Line) {
+		bot.messageReceived(conn, line)
+	})
+}
+
+func (bot *Gobot) loadPlugins(enabled, disabled []string) {
+	allPlugins := GetAllPlugins()
+	log.Printf("Loading all %d available plugins", len(allPlugins))
+	// TODO: Actually do something with enabled/disabled plugins
+	for _, p := range allPlugins {
+		if err := p.Create(bot); err != nil {
+			log.Printf("Failed to initialize %s plugin: %s", p.Name(), err)
+		} else {
+			log.Printf(" --> %s", p.Name())
+		}
+	}
+}
 
 func (bot *Gobot) messageReceived(conn *irc.Conn, line *irc.Line) {
 	if len(line.Args) > 1 {

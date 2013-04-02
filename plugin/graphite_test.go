@@ -1,4 +1,4 @@
-package graphite
+package plugin 
 
 import (
 	"testing"
