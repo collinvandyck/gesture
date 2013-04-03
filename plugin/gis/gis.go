@@ -45,9 +45,9 @@ func search(search string) (result string, err error) {
 		indexes := rand.Perm(len(gisResponse.ResponseData.Results))
 		for _, index := range indexes {
 			imageUrl := gisResponse.ResponseData.Results[index].Url
-			contentType, err := util.ResponseHeaderContentType(imageUrl)
+			imageRedirUrl, contentType, err := util.ResponseHeaderContentType(imageUrl)
 			if err == nil && strings.HasPrefix(contentType, "image/") {
-				return imageUrl, nil
+				return imageRedirUrl, nil
 			}
 		}
 	}

@@ -23,16 +23,16 @@ func ResponseHeaderHasCode(url string, code int) (bool, error) {
 	return (resp.StatusCode == code), nil
 }
 
-func ResponseHeaderContentType(url string) (string, error) {
+func ResponseHeaderContentType(url string) (string, string, error) {
 	resp, err := httpClient.Head(url)
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusOK {
-		return resp.Header.Get("Content-Type"), nil
+		return resp.Request.URL.String(), resp.Header.Get("Content-Type"), nil
 	}
-	return "", errors.New("Non-OK status code")
+	return "", "", errors.New("Non-OK status code")
 }
 
 func ResolveRedirects(url string) (string, error) {
