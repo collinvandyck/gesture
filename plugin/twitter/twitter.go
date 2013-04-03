@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"gesture/core"
 	"gesture/util"
+	"strings"
 )
-
 
 func Create(bot *core.Gobot) {
 	bot.ListenFor("^describe (\\w+)", func(msg core.Message, matches []string) error {
@@ -15,33 +15,40 @@ func Create(bot *core.Gobot) {
 		if err == nil {
 			msg.Send(described)
 		}
-		return err 
+		return err
 	})
 
 	bot.ListenFor("twitter\\.com/(\\w+)/status/(\\d+)", func(msg core.Message, matches []string) error {
-		tweet, err := getTweet(matches[2])
+		user, tweet, err := getTweet(matches[2])
 		if err == nil && tweet != "" {
-			msg.Send(tweet)
+			// Split multi-line tweets into separate PRIVMSG calls
+			fields := strings.FieldsFunc(tweet, func(r rune) bool {
+				return r == '\r' || r == '\n'
+			})
+			for _, field := range fields {
+				if field != "" {
+					msg.Send(fmt.Sprintf("%s: %s", user, field))
+				}
+			}
 		}
 		return err
 	})
 }
 
-func getTweet(tweetId string) (result string, err error) {
+func getTweet(tweetId string) (user string, tweet string, err error) {
 	body, err := util.GetUrl("https://api.twitter.com/1/statuses/show/" + tweetId + ".json")
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	var content map[string]interface{}
 	if err = json.Unmarshal(body, &content); err != nil {
-		return "", err
+		return "", "", err
 	}
-	
-	user := content["user"].(map[string]interface{})["screen_name"]
-	tweet := content["text"].(string)
 
-	response := fmt.Sprintf("%s: %s", user, tweet)
-	return response, nil
+	user = content["user"].(map[string]interface{})["screen_name"].(string)
+	tweet = content["text"].(string)
+
+	return user, tweet, nil
 }
 
 func describe(user string) (result string, err error) {
@@ -58,4 +65,3 @@ func describe(user string) (result string, err error) {
 	pic := first["profile_image_url_https"].(string)
 	return fmt.Sprintf("\"%s\" %s", description, pic), nil
 }
-
