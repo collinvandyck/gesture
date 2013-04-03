@@ -94,6 +94,7 @@ func (bot *Gobot) messageReceived(conn *irc.Conn, line *irc.Line) {
 			matched, err = listener.listen(msg)
 			if err != nil {
 				log.Print(err)
+				msg.Reply(err.Error())
 			}
 			if matched {
 				break
