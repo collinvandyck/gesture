@@ -43,26 +43,13 @@ func search(search string) (result string, err error) {
 	json.Unmarshal(body, &gisResponse)
 	if len(gisResponse.ResponseData.Results) > 0 {
 		indexes := rand.Perm(len(gisResponse.ResponseData.Results))
-		for i := 0; i < len(indexes); i++ {
-			imageUrl := gisResponse.ResponseData.Results[indexes[i]].Url
-			if isImage(imageUrl) {
-				if ok, err := util.ResponseHeaderHasCode(imageUrl, 200); err == nil && ok {
-					return imageUrl, nil
-				}
+		for _, index := range indexes {
+			imageUrl := gisResponse.ResponseData.Results[index].Url
+			contentType, err := util.ResponseHeaderContentType(imageUrl)
+			if err == nil && strings.HasPrefix(contentType, "image/") {
+				return imageUrl, nil
 			}
 		}
 	}
 	return "", errors.New("No image could be found for \"" + search + "\"")
-}
-
-// returns true if the url ends with some well known suffixes
-func isImage(url string) bool {
-	suffixes := []string{".jpg", ".jpeg", ".gif", ".png", ".bmp"}
-	lowered := strings.ToLower(url)
-	for _, suffix := range suffixes {
-		if strings.HasSuffix(lowered, suffix) {
-			return true
-		}
-	}
-	return false
 }
