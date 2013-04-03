@@ -46,7 +46,9 @@ func search(search string) (result string, err error) {
 		for i := 0; i < len(indexes); i++ {
 			imageUrl := gisResponse.ResponseData.Results[indexes[i]].Url
 			if isImage(imageUrl) {
-				return imageUrl, nil
+				if ok, err := util.ResponseHeaderHasCode(imageUrl, 200); err == nil && ok {
+					return imageUrl, nil
+				}
 			}
 		}
 	}

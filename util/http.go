@@ -13,6 +13,16 @@ var (
 	httpClient = http.Client{}
 )
 
+// checks the header of a particular url to see if it's  equal to a response code
+func ResponseHeaderHasCode(url string, code int) (bool, error) {
+	resp, err := httpClient.Head(url) // will follow redirects
+	if err != nil {
+		return false, err
+	}
+	defer resp.Body.Close()
+	return (resp.StatusCode == code), nil
+}
+
 func ResolveRedirects(url string) (string, error) {
 	resp, err := httpClient.Head(url) // will follow redirects
 	if err != nil {
