@@ -6,7 +6,7 @@ import (
 	"gesture/core"
 	"gesture/util"
 	"math/rand"
-	"net/url"
+	neturl "net/url"
 	"strings"
 )
 
@@ -33,7 +33,7 @@ type gisResponse struct {
 
 // Search queries google for some images, and then randomly selects one
 func search(search string) (string, error) {
-	searchUrl := "http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=" + url.QueryEscape(search)
+	searchUrl := "http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=" + neturl.QueryEscape(search)
 	var gisResponse gisResponse
 	if err := util.UnmarshalUrl(searchUrl, &gisResponse); err != nil {
 		return "", err;
@@ -41,15 +41,24 @@ func search(search string) (string, error) {
 	if len(gisResponse.ResponseData.Results) > 0 {
 		indexes := rand.Perm(len(gisResponse.ResponseData.Results))
 		for _, index := range indexes {
-			imageUrl := gisResponse.ResponseData.Results[index].Url
-			imageRedirUrl, contentType, err := util.ResponseHeaderContentType(imageUrl)
+			resultUrl := gisResponse.ResponseData.Results[index].Url
+			imageUrl, contentType, err := util.ResponseHeaderContentType(resultUrl)
 			if err == nil && strings.HasPrefix(contentType, "image/") {
-				return imageRedirUrl, nil
+				return ensureSuffix(imageUrl, "." + contentType[len("image/"):]), nil
 			}
 		}
 	}
 	return "", errors.New("No image could be found for \"" + search + "\"")
 }
 
-
+// ensureSuffix ensures a url ends with suffixes like .jpg, .png, etc
+func ensureSuffix(url, suffix string) string {
+	if strings.HasSuffix(strings.ToLower(url), strings.ToLower(suffix)) {
+		return url
+	}
+	if strings.Contains(url, "?") {
+		return url + "&lol" + suffix
+	}
+	return url + "?lol" + suffix
+}
 
