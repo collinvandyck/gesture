@@ -89,7 +89,15 @@ func getImageInfo(url string, ch chan<- string, failures chan<- error) {
 
 // ensureSuffix ensures a url ends with suffixes like .jpg, .png, etc
 func ensureSuffix(url, suffix string) string {
-	if strings.HasSuffix(strings.ToLower(url), strings.ToLower(suffix)) {
+	lowerSuffix := strings.ToLower(suffix)
+	lowerUrl := strings.ToLower(url)
+	if lowerSuffix == ".jpeg" && strings.HasSuffix(lowerUrl, ".jpg") {
+		return url
+	}
+	if lowerSuffix == ".jpg" && strings.HasSuffix(lowerUrl, ".jpeg") {
+		return url
+	}
+	if strings.HasSuffix(lowerUrl, lowerSuffix) {
 		return url
 	}
 	if strings.Contains(url, "?") {
