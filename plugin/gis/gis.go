@@ -2,7 +2,6 @@
 package gis
 
 import (
-	"encoding/json"
 	"errors"
 	"gesture/core"
 	"gesture/util"
@@ -33,14 +32,12 @@ type gisResponse struct {
 }
 
 // Search queries google for some images, and then randomly selects one
-func search(search string) (result string, err error) {
-	url := "http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=" + url.QueryEscape(search)
-	body, err := util.GetUrl(url)
-	if err != nil {
-		return "", err
-	}
+func search(search string) (string, error) {
+	searchUrl := "http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=" + url.QueryEscape(search)
 	var gisResponse gisResponse
-	json.Unmarshal(body, &gisResponse)
+	if err := util.UnmarshalUrl(searchUrl, &gisResponse); err != nil {
+		return "", err;
+	}
 	if len(gisResponse.ResponseData.Results) > 0 {
 		indexes := rand.Perm(len(gisResponse.ResponseData.Results))
 		for _, index := range indexes {
@@ -53,3 +50,6 @@ func search(search string) (result string, err error) {
 	}
 	return "", errors.New("No image could be found for \"" + search + "\"")
 }
+
+
+

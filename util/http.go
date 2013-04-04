@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"encoding/json"
 )
 
 var (
@@ -67,4 +68,12 @@ func GetUrl(url string) ([]byte, error) {
 		return nil, errors.New(fmt.Sprintf("Bad response code: %d", resp.StatusCode))
 	}
 	return body, nil
+}
+
+func UnmarshalUrl(url string, dest interface{}) error {
+	body, err := GetUrl(url)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(body, &dest)
 }

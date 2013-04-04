@@ -1,7 +1,6 @@
 package memegenerator
 
 import (
-	"encoding/json"
 	"errors"
 	"gesture/core"
 	"gesture/util"
@@ -66,16 +65,11 @@ func (mg memeGen) generate(firstMsg string, secondMsg string) (string, error) {
 	url = url + "&text0=" + neturl.QueryEscape(firstMsg)
 	url = url + "&text1=" + neturl.QueryEscape(secondMsg)
 
-	body, err := util.GetUrl(url)
-	if err != nil {
-		return "", err
-	}
-
 	var decoded map[string]interface{}
-	err = json.Unmarshal(body, &decoded)
-	if err != nil {
+	if err := util.UnmarshalUrl(url, &decoded); err != nil {
 		return "", err
-	}
+	}	
+
 	if result := decoded["result"]; result != nil {
 		switch result := result.(type) {
 		case map[string]interface{}:

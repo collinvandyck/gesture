@@ -2,7 +2,6 @@
 package youtube
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"gesture/core"
@@ -36,14 +35,10 @@ func Create(bot *core.Gobot) {
 // results for that search at random (everyone loves entropy!)
 // Returns an empty string if there were no results for that query
 func search(query string, results int) (link string, err error) {
-	body, err := util.GetUrl(buildSearchUrl(query, results))
-	if err != nil {
-		return
-	}
-
 	var searchResponse youTubeResponse
-	json.Unmarshal(body, &searchResponse)
-
+	if err = util.UnmarshalUrl(buildSearchUrl(query, results), &searchResponse); err != nil {
+		return;
+	}
 	videos := searchResponse.Data.Items
 	switch l := len(videos); {
 	case l > 1:

@@ -2,7 +2,6 @@
 package twitter
 
 import (
-	"encoding/json"
 	"fmt"
 	"gesture/core"
 	"gesture/util"
@@ -36,28 +35,19 @@ func Create(bot *core.Gobot) {
 }
 
 func getTweet(tweetId string) (user string, tweet string, err error) {
-	body, err := util.GetUrl("https://api.twitter.com/1/statuses/show/" + tweetId + ".json")
-	if err != nil {
-		return "", "", err
-	}
 	var content map[string]interface{}
-	if err = json.Unmarshal(body, &content); err != nil {
+	if err := util.UnmarshalUrl("https://api.twitter.com/1/statuses/show/" + tweetId + ".json", &content); err != nil {
 		return "", "", err
 	}
-
 	user = content["user"].(map[string]interface{})["screen_name"].(string)
 	tweet = content["text"].(string)
-
 	return user, tweet, nil
 }
 
 func describe(user string) (result string, err error) {
-	body, err := util.GetUrl("http://api.twitter.com/1/users/lookup.json?include_entities=true&screen_name=" + user)
-	if err != nil {
-		return "", err
-	}
+	url := "http://api.twitter.com/1/users/lookup.json?include_entities=true&screen_name=" + user
 	var jsonResponse []map[string]interface{}
-	if err = json.Unmarshal(body, &jsonResponse); err != nil {
+	if err := util.UnmarshalUrl(url, &jsonResponse); err != nil {
 		return "", err
 	}
 	first := jsonResponse[0]
