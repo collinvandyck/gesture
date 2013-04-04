@@ -36,7 +36,7 @@ func Create(bot *core.Gobot) {
 
 func getTweet(tweetId string) (user string, tweet string, err error) {
 	var content map[string]interface{}
-	if err := util.UnmarshalUrl("https://api.twitter.com/1/statuses/show/" + tweetId + ".json", &content); err != nil {
+	if err := util.UnmarshalUrl("https://api.twitter.com/1/statuses/show/"+tweetId+".json", &content); err != nil {
 		return "", "", err
 	}
 	user = content["user"].(map[string]interface{})["screen_name"].(string)

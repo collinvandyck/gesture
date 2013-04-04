@@ -68,7 +68,7 @@ func (mg memeGen) generate(firstMsg string, secondMsg string) (string, error) {
 	var decoded map[string]interface{}
 	if err := util.UnmarshalUrl(url, &decoded); err != nil {
 		return "", err
-	}	
+	}
 
 	if result := decoded["result"]; result != nil {
 		switch result := result.(type) {

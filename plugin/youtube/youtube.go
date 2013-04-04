@@ -37,7 +37,7 @@ func Create(bot *core.Gobot) {
 func search(query string, results int) (link string, err error) {
 	var searchResponse youTubeResponse
 	if err = util.UnmarshalUrl(buildSearchUrl(query, results), &searchResponse); err != nil {
-		return;
+		return
 	}
 	videos := searchResponse.Data.Items
 	switch l := len(videos); {

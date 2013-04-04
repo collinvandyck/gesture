@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	neturl "net/url"
 	"strings"
+	"time"
 )
 
 func Create(bot *core.Gobot) {
@@ -36,19 +37,48 @@ func search(search string) (string, error) {
 	searchUrl := "http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=" + neturl.QueryEscape(search)
 	var gisResponse gisResponse
 	if err := util.UnmarshalUrl(searchUrl, &gisResponse); err != nil {
-		return "", err;
+		return "", err
 	}
 	if len(gisResponse.ResponseData.Results) > 0 {
-		indexes := rand.Perm(len(gisResponse.ResponseData.Results))
-		for _, index := range indexes {
-			resultUrl := gisResponse.ResponseData.Results[index].Url
-			imageUrl, contentType, err := util.ResponseHeaderContentType(resultUrl)
-			if err == nil && strings.HasPrefix(contentType, "image/") {
-				return ensureSuffix(imageUrl, "." + contentType[len("image/"):]), nil
+
+		// start a goroutine to determine image info for each response result
+		imageUrlCh := make(chan string, len(gisResponse.ResponseData.Results))
+		for _, resultUrl := range gisResponse.ResponseData.Results {
+			go getImageInfo(resultUrl.Url, imageUrlCh)
+		}
+
+		// until a timeout is met, build a collection of urls
+		urls := make([]string, 0, len(gisResponse.ResponseData.Results))
+		timeout := time.After(500 * time.Millisecond)
+		for {
+			select {
+			case url := <-imageUrlCh:
+				urls = append(urls, url)
+			case <-timeout:
+				if len(urls) <= 0 {
+					return "", errors.New("No image could be found for \"" + search + "\"")
+				}
+				indexes := rand.Perm(len(urls))
+				for _, index := range indexes {
+					url := urls[index]
+					return url, nil
+				}
 			}
 		}
+
 	}
 	return "", errors.New("No image could be found for \"" + search + "\"")
+}
+
+// getImageInfo looks at the header info for the url, and if it is an image, it sends an imageInfo on the channel
+func getImageInfo(url string, ch chan string) {
+	imageUrl, contentType, err := util.ResponseHeaderContentType(url)
+	if err == nil && strings.HasPrefix(contentType, "image/") {
+		select {
+		case ch <- ensureSuffix(imageUrl, "."+contentType[len("image/"):]):
+		default:
+		}
+	}
 }
 
 // ensureSuffix ensures a url ends with suffixes like .jpg, .png, etc
@@ -61,4 +91,3 @@ func ensureSuffix(url, suffix string) string {
 	}
 	return url + "?lol" + suffix
 }
-
