@@ -27,9 +27,8 @@ type gisResult struct {
 }
 type gisResponse struct {
 	ResponseData struct {
-		Results []gisResult
+		Results *[]gisResult // use a pointer here b/c sometimes the results are null :(
 	}
-	Results []gisResult
 }
 
 // Search queries google for some images, and then randomly selects one
@@ -39,17 +38,24 @@ func search(search string) (string, error) {
 	if err := util.UnmarshalUrl(searchUrl, &gisResponse); err != nil {
 		return "", err
 	}
-	if len(gisResponse.ResponseData.Results) > 0 {
+
+	if gisResponse.ResponseData.Results == nil {
+		return "", fmt.Errorf("No results were returned for query %s", search)
+	}
+
+	results := *gisResponse.ResponseData.Results
+
+	if len(results) > 0 {
 
 		// start a goroutine to determine image info for each response result
 		imageUrlCh := make(chan string)
 		errorsCh := make(chan error)
-		for _, resultUrl := range gisResponse.ResponseData.Results {
+		for _, resultUrl := range results {
 			go getImageInfo(resultUrl.Url, imageUrlCh, errorsCh)
 		}
 
 		// until a timeout is met, build a collection of urls
-		totalResults := len(gisResponse.ResponseData.Results)
+		totalResults := len(results)
 		remainingResults := totalResults
 		urls := make([]string, 0, totalResults)
 		errors := make([]error, 0, totalResults)
