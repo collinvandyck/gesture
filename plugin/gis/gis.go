@@ -87,27 +87,36 @@ func search(search string) (string, error) {
 func getImageInfo(url string, ch chan<- string, failures chan<- error) {
 	imageUrl, contentType, err := util.ResponseHeaderContentType(url)
 	if err == nil && strings.HasPrefix(contentType, "image/") {
-		ch <- ensureSuffix(imageUrl, "."+contentType[len("image/"):])
+		url, err := ensureSuffix(imageUrl, "."+contentType[len("image/"):])
+		if err != nil {
+			failures <- err
+		}
+		ch <- url
 	} else {
 		failures <- fmt.Errorf("Not an image: %s", url)
 	}
 }
 
 // ensureSuffix ensures a url ends with suffixes like .jpg, .png, etc
-func ensureSuffix(url, suffix string) string {
+func ensureSuffix(url, suffix string) (string, error) {
+	var err error
+	url, err = neturl.QueryUnescape(url)
+	if err != nil {
+		return "", err
+	}
 	lowerSuffix := strings.ToLower(suffix)
 	lowerUrl := strings.ToLower(url)
 	if lowerSuffix == ".jpeg" && strings.HasSuffix(lowerUrl, ".jpg") {
-		return url
+		return url, nil
 	}
 	if lowerSuffix == ".jpg" && strings.HasSuffix(lowerUrl, ".jpeg") {
-		return url
+		return url, nil
 	}
 	if strings.HasSuffix(lowerUrl, lowerSuffix) {
-		return url
+		return url, nil
 	}
 	if strings.Contains(url, "?") {
-		return url + "&lol" + suffix
+		return url + "&lol=lol" + suffix, nil
 	}
-	return url + "?lol" + suffix
+	return url + "?lol=lol" + suffix, nil
 }
