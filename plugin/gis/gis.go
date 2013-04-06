@@ -90,8 +90,9 @@ func getImageInfo(url string, ch chan<- string, failures chan<- error) {
 		url, err := ensureSuffix(imageUrl, "."+contentType[len("image/"):])
 		if err != nil {
 			failures <- err
+		} else {
+			ch <- url
 		}
-		ch <- url
 	} else {
 		failures <- fmt.Errorf("Not an image: %s", url)
 	}
