@@ -25,13 +25,9 @@ func (msg *Message) Send(message string) {
 }
 
 func (msg *Message) Reply(message string) {
-	for _, chunk := range util.StringSplitN(message, maxMsgSize) {
-		msg.Send(fmt.Sprintf("%s: %s", msg.User, chunk))
-	}
+	msg.Send(fmt.Sprintf("%s: %s", msg.User, message))
 }
 
 func (msg *Message) Ftfy(message string) {
-	for _, chunk := range util.StringSplitN(message, maxMsgSize) {
-		msg.Send(fmt.Sprintf("%s: ftfy -> %s", msg.User, chunk))
-	}
+	msg.Send(fmt.Sprintf("%s: ftfy -> %s", msg.User, message))
 }
