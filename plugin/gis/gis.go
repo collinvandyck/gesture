@@ -15,7 +15,7 @@ func Create(bot *core.Gobot) {
 	bot.ListenFor("^gis (.*)", func(msg core.Message, matches []string) error {
 		link, err := search(matches[1])
 		if err == nil {
-			msg.Ftfy(neturl.QueryEscape(link))
+			msg.Ftfy(link)
 		}
 		return err
 	})
