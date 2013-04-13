@@ -4,7 +4,7 @@ package main
 import (
 	"flag"
 	"gesture/core"
-	"gesture/plugin/bees"
+	"gesture/plugin/matcher"
 	"gesture/plugin/gis"
 	"gesture/plugin/graphite"
 	"gesture/plugin/identity"
@@ -16,7 +16,7 @@ import (
 
 func loadPlugins(bot *core.Gobot) {
 	gis.Create(bot)
-	bees.Create(bot)
+	matcher.Create(bot)
 	twitter.Create(bot)
 	youtube.Create(bot)
 	identity.Create(bot)
