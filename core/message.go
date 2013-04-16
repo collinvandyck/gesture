@@ -16,7 +16,7 @@ type Message struct {
 	Text    string
 }
 
-var maxMsgSize int = 490
+const maxMsgSize int = 490
 
 func (msg *Message) Names() []string {
 	result := make([]string, 0)
