@@ -4,6 +4,7 @@ package all
 import (
 	"gesture/core"
 	"strings"
+	"sort"
 )
 
 func Create(bot *core.Gobot) {
@@ -15,7 +16,8 @@ func Create(bot *core.Gobot) {
 			}
 		}
 		if len(names) > 0 {
-			msg.Send("cc: " + strings.Join(names, ","))
+			sort.Strings(names)
+			msg.Send("cc: " + strings.Join(names, " "))
 		}
 		return nil
 	})
