@@ -1,4 +1,4 @@
-// Configuration for your GoBot 
+// Configuration for your GoBot
 // "How to wave your hands"
 package core
 
