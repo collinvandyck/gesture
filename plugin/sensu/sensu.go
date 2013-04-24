@@ -55,10 +55,8 @@ func Create(bot *core.Gobot) {
 				} else {
 					msg.Send(fmt.Sprintf("%s: Total events: %d.", cmdArgs[1], len(events)))
 
-					if len(events) > 0 {
-						for _, event := range events {
-							msg.SendPriv(fmt.Sprintf("%s: %s", cmdArgs[1], event.toString()))
-						}
+					for _, event := range events {
+						msg.SendPriv(fmt.Sprintf("%s: %s", cmdArgs[1], event.toString()))
 					}
 				}
 			} else {
@@ -68,10 +66,8 @@ func Create(bot *core.Gobot) {
 					} else {
 						msg.Send(fmt.Sprintf("%s: Total events: %d.", env, len(events)))
 
-						if len(events) > 0 {
-							for _, event := range events {
-								msg.SendPriv(fmt.Sprintf("%s: %s", env, event.toString()))
-							}
+						for _, event := range events {
+							msg.SendPriv(fmt.Sprintf("%s: %s", env, event.toString()))
 						}
 					}
 				}
@@ -102,10 +98,8 @@ func Create(bot *core.Gobot) {
 				} else {
 					msg.Send(fmt.Sprintf("%s: Total silenced: %d.", cmdArgs[1], len(silenced)))
 
-					if len(silenced) > 0 {
-						for _, s := range silenced {
-							msg.SendPriv(fmt.Sprintf("%s: %s", cmdArgs[1], s))
-						}
+					for _, s := range silenced {
+						msg.SendPriv(fmt.Sprintf("%s: %s", cmdArgs[1], s))
 					}
 				}
 			} else {
@@ -115,10 +109,8 @@ func Create(bot *core.Gobot) {
 					} else {
 						msg.Send(fmt.Sprintf("%s: Total silenced: %d.", env, len(silenced)))
 
-						if len(silenced) > 0 {
-							for _, s := range silenced {
-								msg.SendPriv(fmt.Sprintf("%s: %s", env, s))
-							}
+						for _, s := range silenced {
+							msg.SendPriv(fmt.Sprintf("%s: %s", env, s))
 						}
 					}
 				}
