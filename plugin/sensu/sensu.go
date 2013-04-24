@@ -55,8 +55,7 @@ func Create(bot *core.Gobot) {
 				} else {
 					if len(events) > 0 {
 						for _, event := range events {
-							msg.Send(fmt.Sprintf("%s: %s", cmdArgs[1], event.toString()))
-							time.Sleep(100 * time.Millisecond)
+							msg.SendPriv(fmt.Sprintf("%s: %s", cmdArgs[1], event.toString()))
 						}
 					} else {
 						msg.Send(fmt.Sprintf("%s: No current open alerts.", cmdArgs[1]))
@@ -69,8 +68,7 @@ func Create(bot *core.Gobot) {
 					} else {
 						if len(events) > 0 {
 							for _, event := range events {
-								msg.Send(fmt.Sprintf("%s: %s", env, event.toString()))
-								time.Sleep(100 * time.Millisecond)
+								msg.SendPriv(fmt.Sprintf("%s: %s", env, event.toString()))
 							}
 						} else {
 							msg.Send(fmt.Sprintf("%s: No current open alerts.", env))
@@ -104,8 +102,7 @@ func Create(bot *core.Gobot) {
 				} else {
 					if len(silenced) > 0 {
 						for _, s := range silenced {
-							msg.Send(fmt.Sprintf("%s: %s", cmdArgs[1], s))
-							time.Sleep(100 * time.Millisecond)
+							msg.SendPriv(fmt.Sprintf("%s: %s", cmdArgs[1], s))
 						}
 					} else {
 						msg.Send(fmt.Sprintf("%s: Nothing currently silenced.", cmdArgs[1]))
@@ -118,8 +115,7 @@ func Create(bot *core.Gobot) {
 					} else {
 						if len(silenced) > 0 {
 							for _, s := range silenced {
-								msg.Send(fmt.Sprintf("%s: %s", env, s))
-								time.Sleep(100 * time.Millisecond)
+								msg.SendPriv(fmt.Sprintf("%s: %s", env, s))
 							}
 						} else {
 							msg.Send(fmt.Sprintf("%s: Nothing currently silenced.", env))
