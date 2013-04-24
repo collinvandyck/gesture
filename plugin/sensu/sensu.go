@@ -51,7 +51,7 @@ func Create(bot *core.Gobot) {
 		case "events":
 			if len(cmdArgs) > 1 {
 				if err, events := getEvents(envs[cmdArgs[1]]); err != nil {
-					fmt.Println(err)
+					return err
 				} else {
 					if len(events) > 0 {
 						for _, event := range events {
@@ -59,13 +59,13 @@ func Create(bot *core.Gobot) {
 							time.Sleep(100 * time.Millisecond)
 						}
 					} else {
-						msg.Send("No current open alerts.")
+						msg.Send(fmt.Sprintf("%s: No current open alerts."))
 					}
 				}
 			} else {
 				for env, url := range envs {
 					if err, events := getEvents(url); err != nil {
-						fmt.Println(err)
+						return err
 					} else {
 						if len(events) > 0 {
 							for _, event := range events {
@@ -93,14 +93,14 @@ func Create(bot *core.Gobot) {
 			}
 
 			if err := silence(env, target); err != nil {
-				fmt.Println(err)
+				return err
 			} else {
 				msg.Send(fmt.Sprintf("silenced %s in env: %s", cmdArgs[2], cmdArgs[1]))
 			}
 		case "silenced":
 			if len(cmdArgs) > 1 {
 				if err, silenced := getSilenced(envs[cmdArgs[1]]); err != nil {
-					fmt.Println(err)
+					return err
 				} else {
 					if len(silenced) > 0 {
 						for _, s := range silenced {
@@ -114,7 +114,7 @@ func Create(bot *core.Gobot) {
 			} else {
 				for env, url := range envs {
 					if err, silenced := getSilenced(url); err != nil {
-						fmt.Println(err)
+						return err
 					} else {
 						if len(silenced) > 0 {
 							for _, s := range silenced {
@@ -184,25 +184,19 @@ func silence(sensuUrl string, target string) error {
 	data := postData{timestamp: time.Now().Unix()}
 	marshalled, err := json.Marshal(data)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 
 	silenceUrl := fmt.Sprintf("%s/stash/silence/%s", sensuUrl, target)
 	_, err = http.Post(silenceUrl, "application/json", bytes.NewBuffer(marshalled))
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func unsilence(sensuUrl string, target string) error {
 	silenceUrl := fmt.Sprintf("%s/stash/silence/%s", sensuUrl, target)
 	req, _ := http.NewRequest("DELETE", silenceUrl, nil)
 	_, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (event *sensuEventData) statusAsString() string {
