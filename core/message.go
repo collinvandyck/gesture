@@ -33,6 +33,12 @@ func (msg *Message) Send(message string) {
 	}
 }
 
+func (msg *Message) SendPriv(message string) {
+	for _, chunk := range util.StringSplitN(rewrite.Rewrite(message), maxMsgSize) {
+		msg.conn.Privmsg(msg.User, chunk)
+	}
+}
+
 func (msg *Message) Reply(message string) {
 	msg.Send(fmt.Sprintf("%s: %s", msg.User, message))
 }
