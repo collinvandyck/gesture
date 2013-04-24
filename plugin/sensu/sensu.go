@@ -53,13 +53,10 @@ func Create(bot *core.Gobot) {
 				if err, events := getEvents(envs[cmdArgs[1]]); err != nil {
 					return err
 				} else {
-					if len(events) > 0 {
-						for _, event := range events {
-							msg.Send(fmt.Sprintf("%s: %s", cmdArgs[1], event.toString()))
-							time.Sleep(100 * time.Millisecond)
-						}
-					} else {
-						msg.Send(fmt.Sprintf("%s: No current open alerts.", cmdArgs[1]))
+					msg.Send(fmt.Sprintf("%s: Total events: %d.", cmdArgs[1], len(events)))
+
+					for _, event := range events {
+						msg.SendPriv(fmt.Sprintf("%s: %s", cmdArgs[1], event.toString()))
 					}
 				}
 			} else {
@@ -67,13 +64,10 @@ func Create(bot *core.Gobot) {
 					if err, events := getEvents(url); err != nil {
 						return err
 					} else {
-						if len(events) > 0 {
-							for _, event := range events {
-								msg.Send(fmt.Sprintf("%s: %s", env, event.toString()))
-								time.Sleep(100 * time.Millisecond)
-							}
-						} else {
-							msg.Send(fmt.Sprintf("%s: No current open alerts.", env))
+						msg.Send(fmt.Sprintf("%s: Total events: %d.", env, len(events)))
+
+						for _, event := range events {
+							msg.SendPriv(fmt.Sprintf("%s: %s", env, event.toString()))
 						}
 					}
 				}
@@ -102,13 +96,10 @@ func Create(bot *core.Gobot) {
 				if err, silenced := getSilenced(envs[cmdArgs[1]]); err != nil {
 					return err
 				} else {
-					if len(silenced) > 0 {
-						for _, s := range silenced {
-							msg.Send(fmt.Sprintf("%s: %s", cmdArgs[1], s))
-							time.Sleep(100 * time.Millisecond)
-						}
-					} else {
-						msg.Send(fmt.Sprintf("%s: Nothing currently silenced.", cmdArgs[1]))
+					msg.Send(fmt.Sprintf("%s: Total silenced: %d.", cmdArgs[1], len(silenced)))
+
+					for _, s := range silenced {
+						msg.SendPriv(fmt.Sprintf("%s: %s", cmdArgs[1], s))
 					}
 				}
 			} else {
@@ -116,13 +107,10 @@ func Create(bot *core.Gobot) {
 					if err, silenced := getSilenced(url); err != nil {
 						return err
 					} else {
-						if len(silenced) > 0 {
-							for _, s := range silenced {
-								msg.Send(fmt.Sprintf("%s: %s", env, s))
-								time.Sleep(100 * time.Millisecond)
-							}
-						} else {
-							msg.Send(fmt.Sprintf("%s: Nothing currently silenced.", env))
+						msg.Send(fmt.Sprintf("%s: Total silenced: %d.", env, len(silenced)))
+
+						for _, s := range silenced {
+							msg.SendPriv(fmt.Sprintf("%s: %s", env, s))
 						}
 					}
 				}
