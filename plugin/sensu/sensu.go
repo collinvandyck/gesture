@@ -108,7 +108,7 @@ func Create(bot *core.Gobot) {
 							time.Sleep(100 * time.Millisecond)
 						}
 					} else {
-						msg.Send("Nothing currently silenced.")
+						msg.Send(fmt.Sprintf("%s: Nothing currently silenced.", cmdArgs[1]))
 					}
 				}
 			} else {
@@ -122,7 +122,7 @@ func Create(bot *core.Gobot) {
 								time.Sleep(100 * time.Millisecond)
 							}
 						} else {
-							msg.Send("Nothing currently silenced.")
+							msg.Send(fmt.Sprintf("%s: Nothing currently silenced.", env))
 						}
 					}
 				}
