@@ -53,12 +53,12 @@ func Create(bot *core.Gobot) {
 				if err, events := getEvents(envs[cmdArgs[1]]); err != nil {
 					return err
 				} else {
+					msg.Send(fmt.Sprintf("%s: Total events: %d.", cmdArgs[1], len(events)))
+
 					if len(events) > 0 {
 						for _, event := range events {
 							msg.SendPriv(fmt.Sprintf("%s: %s", cmdArgs[1], event.toString()))
 						}
-					} else {
-						msg.Send(fmt.Sprintf("%s: No current open alerts.", cmdArgs[1]))
 					}
 				}
 			} else {
@@ -66,12 +66,12 @@ func Create(bot *core.Gobot) {
 					if err, events := getEvents(url); err != nil {
 						return err
 					} else {
+						msg.Send(fmt.Sprintf("%s: Total events: %d.", env, len(events)))
+
 						if len(events) > 0 {
 							for _, event := range events {
 								msg.SendPriv(fmt.Sprintf("%s: %s", env, event.toString()))
 							}
-						} else {
-							msg.Send(fmt.Sprintf("%s: No current open alerts.", env))
 						}
 					}
 				}
@@ -100,12 +100,12 @@ func Create(bot *core.Gobot) {
 				if err, silenced := getSilenced(envs[cmdArgs[1]]); err != nil {
 					return err
 				} else {
+					msg.Send(fmt.Sprintf("%s: Total silenced: %d.", cmdArgs[1], len(silenced)))
+
 					if len(silenced) > 0 {
 						for _, s := range silenced {
 							msg.SendPriv(fmt.Sprintf("%s: %s", cmdArgs[1], s))
 						}
-					} else {
-						msg.Send(fmt.Sprintf("%s: Nothing currently silenced.", cmdArgs[1]))
 					}
 				}
 			} else {
@@ -113,12 +113,12 @@ func Create(bot *core.Gobot) {
 					if err, silenced := getSilenced(url); err != nil {
 						return err
 					} else {
+						msg.Send(fmt.Sprintf("%s: Total silenced: %d.", env, len(silenced)))
+
 						if len(silenced) > 0 {
 							for _, s := range silenced {
 								msg.SendPriv(fmt.Sprintf("%s: %s", env, s))
 							}
-						} else {
-							msg.Send(fmt.Sprintf("%s: Nothing currently silenced.", env))
 						}
 					}
 				}
