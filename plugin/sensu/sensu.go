@@ -59,7 +59,7 @@ func Create(bot *core.Gobot) {
 							time.Sleep(100 * time.Millisecond)
 						}
 					} else {
-						msg.Send(fmt.Sprintf("%s: No current open alerts."))
+						msg.Send(fmt.Sprintf("%s: No current open alerts.", cmdArgs[1]))
 					}
 				}
 			} else {
