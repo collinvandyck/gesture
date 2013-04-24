@@ -59,7 +59,7 @@ func search(search string) (string, error) {
 		remainingResults := totalResults
 		urls := make([]string, 0, totalResults)
 		errors := make([]error, 0, totalResults)
-		timeout := time.After(500 * time.Millisecond)
+		timeout := time.After(2 * time.Second)
 
 	SEARCH:
 		for remainingResults > 0 {
@@ -101,12 +101,12 @@ func getImageInfo(url string, ch chan<- string, failures chan<- error) {
 // ensureSuffix ensures a url ends with suffixes like .jpg, .png, etc
 func ensureSuffix(url, suffix string) (string, error) {
 	var err error
-	url, err = neturl.QueryUnescape(url)
+	unescapedUrl, err := neturl.QueryUnescape(url)
 	if err != nil {
 		return "", err
 	}
 	lowerSuffix := strings.ToLower(suffix)
-	lowerUrl := strings.ToLower(url)
+	lowerUrl := strings.ToLower(unescapedUrl)
 	if lowerSuffix == ".jpeg" && strings.HasSuffix(lowerUrl, ".jpg") {
 		return url, nil
 	}

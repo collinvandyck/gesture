@@ -16,7 +16,16 @@ type Message struct {
 	Text    string
 }
 
-var maxMsgSize int = 490
+const maxMsgSize int = 490
+
+func (msg *Message) Names() []string {
+	result := make([]string, 0)
+	nicks := msg.conn.ST.GetChannel(msg.Channel).Nicks()
+	for _, nick := range nicks {
+		result = append(result, nick.Nick)
+	}
+	return result
+}
 
 func (msg *Message) Send(message string) {
 	for _, chunk := range util.StringSplitN(rewrite.Rewrite(message), maxMsgSize) {

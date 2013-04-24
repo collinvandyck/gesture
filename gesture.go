@@ -4,10 +4,11 @@ package main
 import (
 	"flag"
 	"gesture/core"
-	"gesture/plugin/bees"
+	"gesture/plugin/all"
 	"gesture/plugin/gis"
 	"gesture/plugin/graphite"
 	"gesture/plugin/identity"
+	"gesture/plugin/matcher"
 	"gesture/plugin/memegenerator"
 	"gesture/plugin/sensu"
 	"gesture/plugin/twitter"
@@ -17,13 +18,14 @@ import (
 
 func loadPlugins(bot *core.Gobot) {
 	gis.Create(bot)
-	bees.Create(bot)
+	matcher.Create(bot)
 	twitter.Create(bot)
 	youtube.Create(bot)
 	identity.Create(bot)
 	memegenerator.Create(bot)
 	graphite.Create(bot)
 	sensu.Create(bot)
+	all.Create(bot)
 }
 
 func main() {

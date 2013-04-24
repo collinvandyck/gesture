@@ -12,7 +12,7 @@ import (
 	"regexp"
 )
 
-// A YouTube plugin 
+// A YouTube plugin
 var urlCleaner = regexp.MustCompile(`&feature=youtube_gdata_player`)
 
 func Create(bot *core.Gobot) {
