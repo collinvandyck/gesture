@@ -1,6 +1,5 @@
 .DS_Store
-boundary.conf
 *.swp
-gesture.conf
 bin/*
 gesture
+*.conf
