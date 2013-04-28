@@ -3,8 +3,8 @@ package all
 
 import (
 	"gesture/core"
-	"strings"
 	"sort"
+	"strings"
 )
 
 func Create(bot *core.Gobot) {

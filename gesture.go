@@ -8,6 +8,7 @@ import (
 	"gesture/plugin/gis"
 	"gesture/plugin/graphite"
 	"gesture/plugin/identity"
+	"gesture/plugin/markov"
 	"gesture/plugin/matcher"
 	"gesture/plugin/memegenerator"
 	"gesture/plugin/sensu"
@@ -26,6 +27,7 @@ func loadPlugins(bot *core.Gobot) {
 	graphite.Create(bot)
 	sensu.Create(bot)
 	all.Create(bot)
+	markov.Create(bot)
 }
 
 func main() {
