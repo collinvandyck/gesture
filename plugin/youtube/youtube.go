@@ -22,12 +22,15 @@ func Create(bot *core.Gobot) {
 		results = 1
 	}
 
-	bot.ListenFor("^yt (.*)", func(msg core.Message, matches []string) error {
+	bot.ListenFor("^yt (.*)", func(msg core.Message, matches []string) core.Response {
 		link, err := search(matches[1], int(results))
-		if err == nil && link != "" {
+		if err != nil {
+			return bot.Error(err)
+		}
+		if link != "" {
 			msg.Ftfy(link)
 		}
-		return err
+		return bot.Stop()
 	})
 }
 

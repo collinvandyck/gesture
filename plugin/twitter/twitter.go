@@ -9,15 +9,16 @@ import (
 )
 
 func Create(bot *core.Gobot) {
-	bot.ListenFor("^describe (\\w+)", func(msg core.Message, matches []string) error {
+	bot.ListenFor("^describe (\\w+)", func(msg core.Message, matches []string) core.Response {
 		described, err := describe(matches[1])
-		if err == nil {
-			msg.Send(described)
+		if err != nil {
+			return bot.Error(err)
 		}
-		return err
+		msg.Send(described)
+		return bot.Stop()
 	})
 
-	bot.ListenFor("twitter\\.com/(\\w+)/status/(\\d+)", func(msg core.Message, matches []string) error {
+	bot.ListenFor("twitter\\.com/(\\w+)/status/(\\d+)", func(msg core.Message, matches []string) core.Response {
 		user, tweet, err := getTweet(matches[2])
 		if err == nil && tweet != "" {
 			// Split multi-line tweets into separate PRIVMSG calls
@@ -30,7 +31,7 @@ func Create(bot *core.Gobot) {
 				}
 			}
 		}
-		return err
+		return bot.KeepGoing()
 	})
 }
 

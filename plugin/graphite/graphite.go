@@ -16,11 +16,11 @@ func Create(bot *core.Gobot) {
 	}
 
 	pattern := fmt.Sprintf(`%s(\S+)`, prefix)
-	bot.ListenFor(pattern, func(msg core.Message, matches []string) error {
+	bot.ListenFor(pattern, func(msg core.Message, matches []string) core.Response {
 		url := matches[0]
 		if !strings.HasSuffix(url, ".png") {
 			msg.Ftfy(url + "&lol.png")
 		}
-		return nil
+		return bot.Stop()
 	})
 }

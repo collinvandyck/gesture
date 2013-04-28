@@ -8,7 +8,7 @@ import (
 )
 
 func Create(bot *core.Gobot) {
-	bot.ListenFor("!all", func(msg core.Message, matches []string) error {
+	bot.ListenFor("!all", func(msg core.Message, matches []string) core.Response {
 		names := make([]string, 0)
 		for _, name := range msg.Names() {
 			if name != msg.User && name != bot.Name {
@@ -19,6 +19,6 @@ func Create(bot *core.Gobot) {
 			sort.Strings(names)
 			msg.Send("cc: " + strings.Join(names, " "))
 		}
-		return nil
+		return bot.Stop()
 	})
 }

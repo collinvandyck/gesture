@@ -7,9 +7,11 @@ package markov
 import (
 	"fmt"
 	"gesture/core"
+	"gesture/state"
 	"strings"
 	"sync"
 	"math/rand"
+	"log"
 )
 
 type markovState struct {
@@ -19,41 +21,73 @@ type markovState struct {
 
 const (
 	maxWords = 100
+	maxChainLength = 1000
 )
 
 var (
-	state = markovState{PrefixLength: 2, Chains: make(map[string]map[string][]string)}
+	markov = markovState{PrefixLength: 2, Chains: make(map[string]map[string][]string)}
 	mutex sync.Mutex
+	pluginState = state.NewState("markov")
 )
 
 func Create(bot *core.Gobot) {
-	// generate a chain for the specified user
-	bot.ListenFor("markov *(.*)", func(msg core.Message, matches []string) error {
-		output, err := generate(matches[1])
+	if err := pluginState.Load(&markov); err != nil {
+		log.Printf("Could not load plugin state: %s", err)
+	}
+
+	bot.ListenFor("^ *markov *$", func(msg core.Message, matches[]string) core.Response {
+		mutex.Lock()
+		defer mutex.Unlock()
+		output, err := generateRandom()
 		if err != nil {
-			return err
+			return bot.Error(err)
 		}
 		msg.Send(output)
-		return nil
+		return bot.KeepGoing()
+	})
+
+	// generate a chain for the specified user
+	bot.ListenFor("markov *(.*)", func(msg core.Message, matches []string) core.Response {
+		mutex.Lock()
+		defer mutex.Unlock()
+		output, err := generate(matches[1])
+		if err != nil {
+			return bot.Error(err)
+		}
+		msg.Send(output)
+		return bot.KeepGoing()
 	})
 
 	// listen to everything
-	bot.ListenFor("(.*)", func(msg core.Message, matches []string) error {
+	bot.ListenFor("(.*)", func(msg core.Message, matches []string) core.Response {
+		mutex.Lock()
+		defer mutex.Unlock()
 		user := msg.User
 		text := matches[0]
 		record(user, text)
-		return nil
+		return bot.KeepGoing()
 	})
 }
 
+func generateRandom() (string, error) {
+	if len(markov.Chains) == 0 {
+		return "", fmt.Errorf("No chains could be found")
+	}
+	users := make([]string, 0, len(markov.Chains))
+	for k, _ := range markov.Chains {
+		users = append(users, k)
+	}
+	user := users[rand.Intn(len(users))]
+	// we have to unlock here b/c of deadlock caused by generate
+	return generate(user)
+}
+
 func generate(user string) (string, error) {
-	mutex.Lock()
-	defer mutex.Unlock()
-	userMap, ok := state.Chains[user]
+	userMap, ok := markov.Chains[user]
 	if !ok {
 		return "", fmt.Errorf("No chain could be found for %s", user)
 	}
-	p := newPrefix(state.PrefixLength)
+	p := newPrefix(markov.PrefixLength)
 	var words []string
 	for i := 0; i < maxWords; i++ {
 		choices := userMap[p.String()]		
@@ -68,23 +102,38 @@ func generate(user string) (string, error) {
 }
 
 // record breaks up the text into tokens and then creates chains for that user
-func record(user, text string) {
-	mutex.Lock()
-	defer mutex.Unlock()
-
-	p := newPrefix(state.PrefixLength)
+func record(user, text string) error {
+	p := newPrefix(markov.PrefixLength)
 	tokens := strings.Split(text, " ")
-	userMap, ok := state.Chains[user]
+	userMap, ok := markov.Chains[user]
 	if !ok {
-		state.Chains[user] = make(map[string][]string)
-		userMap = state.Chains[user]
+		markov.Chains[user] = make(map[string][]string)
+		userMap = markov.Chains[user]
 	}
 	for _, token := range tokens {
+		if strings.HasPrefix("http", token) {
+			continue
+		}
 		str := p.String()
-		// todo: limit the length of the chain for this prefix
-		userMap[str] = append(userMap[str], token)
-		p.shift(token)
+		if !contains(userMap[str], token) {
+			userMap[str] = append(userMap[str], token)
+			p.shift(token)
+			// only allow maxChainLength items in a particular chain for a prefix
+			if len(userMap[str]) > maxChainLength {
+				userMap[str] = userMap[str][len(userMap[str]) - maxChainLength:]
+			}
+		}
 	}
+	return pluginState.Save(markov)
+}
+
+func contains(tokens []string, token string) bool {
+	for _, word := range tokens {
+		if word == token {
+			return true
+		}
+	}
+	return false
 }
 
 

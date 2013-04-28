@@ -15,6 +15,8 @@ import (
 	"gesture/plugin/twitter"
 	"gesture/plugin/youtube"
 	"log"
+	"math/rand"
+	"time"
 )
 
 func loadPlugins(bot *core.Gobot) {
@@ -31,6 +33,8 @@ func loadPlugins(bot *core.Gobot) {
 }
 
 func main() {
+	rand.Seed( time.Now().UTC().UnixNano())
+
 	// Parse command-line arguments in logging package
 	flag.Parse()
 	args := flag.Args()
