@@ -47,7 +47,7 @@ func Create(bot *core.Gobot) {
 	})
 
 	// generate a chain for the specified user
-	bot.ListenFor("markov *(.*)", func(msg core.Message, matches []string) core.Response {
+	bot.ListenFor("^ *markov *(.+)", func(msg core.Message, matches []string) core.Response {
 		mutex.Lock()
 		defer mutex.Unlock()
 		output, err := generate(matches[1])

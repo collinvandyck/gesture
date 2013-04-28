@@ -116,13 +116,14 @@ func (bot *Gobot) messageReceived(conn *irc.Conn, line *irc.Line) {
 		for _, listener := range bot.listeners {
 			response := listener.listen(msg)
 			if response != nil {
-				if response.Status == Stop {
-					matched = true
-					break
-				}
 				if response.Error != nil {
 					log.Print(response.Error)
 					msg.Reply(response.Error.Error())
+					matched = true
+					break
+				}
+				if response.Status == Stop {
+					matched = true
 					break
 				}
 			}
