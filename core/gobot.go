@@ -10,6 +10,17 @@ import (
 	"regexp"
 )
 
+type Response struct {
+	Status Status
+	Error error
+}
+
+type Status int
+const (
+	Stop Status = iota
+	KeepGoing
+)
+
 type Gobot struct {
 	Name      string
 	Config    *Config
@@ -72,9 +83,21 @@ func (bot *Gobot) Disconnect() {
 
 // Add a listener that matches incoming messages based on the given regexp.
 // Matched messages and any submatches are returned to the callback.
-func (bot *Gobot) ListenFor(pattern string, cb func(Message, []string) error) {
+func (bot *Gobot) ListenFor(pattern string, cb func(Message, []string) Response) {
 	re := regexp.MustCompile(pattern)
 	bot.listeners = append(bot.listeners, listener{re, cb})
+}
+
+func (msg *Gobot) Stop() Response {
+	return Response{Stop, nil}
+}
+
+func (msg *Gobot) KeepGoing() Response {
+	return Response{KeepGoing, nil}
+}
+
+func (msg *Gobot) Error(err error) Response {
+	return Response{Stop, err}
 }
 
 // TODO:
@@ -89,16 +112,20 @@ func (bot *Gobot) messageReceived(conn *irc.Conn, line *irc.Line) {
 		msg := messageFrom(conn, line)
 		log.Printf(">> %s (%s): %s\n", msg.User, msg.Channel, msg.Text)
 
-		matched := false
-		var err error = nil
+	    matched := false
 		for _, listener := range bot.listeners {
-			matched, err = listener.listen(msg)
-			if err != nil {
-				log.Print(err)
-				msg.Reply(err.Error())
-			}
-			if matched {
-				break
+			response := listener.listen(msg)
+			if response != nil {
+				if response.Error != nil {
+					log.Print(response.Error)
+					msg.Reply(response.Error.Error())
+					matched = true
+					break
+				}
+				if response.Status == Stop {
+					matched = true
+					break
+				}
 			}
 		}
 		if !matched {
@@ -119,15 +146,15 @@ func messageFrom(conn *irc.Conn, line *irc.Line) Message {
 
 type listener struct {
 	re *regexp.Regexp
-	cb func(Message, []string) error
+	cb func(Message, []string) Response
 }
 
 // Try to match the given message. If it matches, fire the callback and returns
 // true. Returns false otherwise.
-func (listener *listener) listen(msg Message) (matched bool, err error) {
+func (listener *listener) listen(msg Message) *Response {
 	if matches := listener.re.FindStringSubmatch(msg.Text); matches != nil {
-		matched = true
-		err = listener.cb(msg, matches)
+		response := listener.cb(msg, matches)
+		return &response
 	}
-	return
+	return nil
 }

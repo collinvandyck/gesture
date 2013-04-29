@@ -20,9 +20,9 @@ func Create(bot *core.Gobot) {
 		for pattern, replacement := range matches {
 			switch replacement := replacement.(type) {
 			case string:
-				bot.ListenFor(pattern, func(msg core.Message, matches []string) error {
+				bot.ListenFor(pattern, func(msg core.Message, matches []string) core.Response {
 					msg.Send(replacement)
-					return nil
+					return bot.KeepGoing()
 				})
 			}
 		}

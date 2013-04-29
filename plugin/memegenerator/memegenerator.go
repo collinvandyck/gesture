@@ -18,12 +18,15 @@ func Create(bot *core.Gobot) error {
 
 	fry := memeGen{username, password, fryGenerator, fryImage}
 
-	bot.ListenFor(`(?i)(not sure|unsure) if (.*) or (.*)`, func(msg core.Message, matches []string) error {
+	bot.ListenFor(`(?i)(not sure|unsure) if (.*) or (.*)`, func(msg core.Message, matches []string) core.Response {
 		result, err := fry.generate(matches[1]+" if "+matches[2], " or "+matches[3])
-		if err == nil && result != "" {
+		if err != nil {
+			return bot.Error(err)
+		}
+		if result != "" {
 			msg.Reply(result)
 		}
-		return err
+		return bot.Stop()
 	})
 	return nil
 }

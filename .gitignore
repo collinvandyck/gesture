@@ -3,3 +3,5 @@
 bin/*
 gesture
 *.conf
+markov.json
+

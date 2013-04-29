@@ -8,6 +8,7 @@ import (
 	"gesture/plugin/gis"
 	"gesture/plugin/graphite"
 	"gesture/plugin/identity"
+	"gesture/plugin/markov"
 	"gesture/plugin/matcher"
 	"gesture/plugin/memegenerator"
 	"gesture/plugin/pagerduty"
@@ -15,6 +16,8 @@ import (
 	"gesture/plugin/twitter"
 	"gesture/plugin/youtube"
 	"log"
+	"math/rand"
+	"time"
 )
 
 func loadPlugins(bot *core.Gobot) {
@@ -22,6 +25,7 @@ func loadPlugins(bot *core.Gobot) {
 	gis.Create(bot)
 	graphite.Create(bot)
 	identity.Create(bot)
+	markov.Create(bot)
 	matcher.Create(bot)
 	memegenerator.Create(bot)
 	pagerduty.Create(bot)
@@ -31,6 +35,8 @@ func loadPlugins(bot *core.Gobot) {
 }
 
 func main() {
+	rand.Seed( time.Now().UTC().UnixNano())
+
 	// Parse command-line arguments in logging package
 	flag.Parse()
 	args := flag.Args()

@@ -45,13 +45,13 @@ func Create(bot *core.Gobot) {
 		envs[e] = fmt.Sprintf("%s", u)
 	}
 
-	bot.ListenFor("^sensu (.*)", func(msg core.Message, matches []string) error {
+	bot.ListenFor("^sensu (.*)", func(msg core.Message, matches []string) core.Response {
 		cmdArgs := strings.Split(matches[1], " ")
 		switch cmdArgs[0] {
 		case "events":
 			if len(cmdArgs) > 1 {
 				if err, events := getEvents(envs[cmdArgs[1]]); err != nil {
-					return err
+					return bot.Error(err)
 				} else {
 					msg.Send(fmt.Sprintf("%s: Total events: %d.", cmdArgs[1], len(events)))
 
@@ -62,7 +62,7 @@ func Create(bot *core.Gobot) {
 			} else {
 				for env, url := range envs {
 					if err, events := getEvents(url); err != nil {
-						return err
+						return bot.Error(err)
 					} else {
 						msg.Send(fmt.Sprintf("%s: Total events: %d.", env, len(events)))
 
@@ -87,14 +87,14 @@ func Create(bot *core.Gobot) {
 			}
 
 			if err := silence(env, target); err != nil {
-				return err
+				return bot.Error(err)
 			} else {
 				msg.Send(fmt.Sprintf("silenced %s in env: %s", cmdArgs[2], cmdArgs[1]))
 			}
 		case "silenced":
 			if len(cmdArgs) > 1 {
 				if err, silenced := getSilenced(envs[cmdArgs[1]]); err != nil {
-					return err
+					return bot.Error(err)
 				} else {
 					msg.Send(fmt.Sprintf("%s: Total silenced: %d.", cmdArgs[1], len(silenced)))
 
@@ -105,7 +105,7 @@ func Create(bot *core.Gobot) {
 			} else {
 				for env, url := range envs {
 					if err, silenced := getSilenced(url); err != nil {
-						return err
+						return bot.Error(err)
 					} else {
 						msg.Send(fmt.Sprintf("%s: Total silenced: %d.", env, len(silenced)))
 
@@ -136,7 +136,7 @@ func Create(bot *core.Gobot) {
 			}
 		}
 
-		return nil
+		return bot.Stop()
 	})
 }
 

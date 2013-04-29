@@ -12,12 +12,13 @@ import (
 )
 
 func Create(bot *core.Gobot) {
-	bot.ListenFor("^gis (.*)", func(msg core.Message, matches []string) error {
+	bot.ListenFor("^gis (.*)", func(msg core.Message, matches []string) core.Response {
 		link, err := search(matches[1])
-		if err == nil {
-			msg.Ftfy(link)
+		if err != nil {
+			return bot.Error(err)
 		}
-		return err
+		msg.Ftfy(link)
+		return bot.Stop()
 	})
 }
 
