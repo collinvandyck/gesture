@@ -2,11 +2,11 @@
 package state
 
 import (
-	"encoding/json"
-	"os"
-	"fmt"
 	"bufio"
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"os"
 )
 
 type State interface {
@@ -32,11 +32,11 @@ func (state *state) Load(container interface{}) error {
 	if err != nil {
 		return fmt.Errorf("Could not read file %s: %s", state.filename(), err)
 	}
-    err = json.Unmarshal(bytes, &container)
-    if err != nil {
+	err = json.Unmarshal(bytes, &container)
+	if err != nil {
 		return fmt.Errorf("Could not unmarshal json from file %s: %s", state.filename(), err)
-    }
-    return nil
+	}
+	return nil
 }
 
 func (state *state) filename() string {
