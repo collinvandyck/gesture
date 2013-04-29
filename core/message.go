@@ -3,8 +3,8 @@ package core
 
 import (
 	"fmt"
-	"gesture/rewrite"
-	"gesture/util"
+	"github.com/collinvandyck/gesture/rewrite"
+	"github.com/collinvandyck/gesture/util"
 	irc "github.com/fluffle/goirc/client"
 )
 

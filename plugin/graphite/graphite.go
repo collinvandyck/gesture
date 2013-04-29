@@ -3,7 +3,7 @@ package graphite
 
 import (
 	"fmt"
-	"gesture/core"
+	"github.com/collinvandyck/gesture/core"
 	"log"
 	"strings"
 )

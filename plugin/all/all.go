@@ -2,7 +2,7 @@
 package all
 
 import (
-	"gesture/core"
+	"github.com/collinvandyck/gesture/core"
 	"sort"
 	"strings"
 )
