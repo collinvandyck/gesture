@@ -4,7 +4,7 @@ package core
 
 import (
 	"flag"
-	"gesture/rewrite"
+	"github.com/collinvandyck/gesture/rewrite"
 	irc "github.com/fluffle/goirc/client"
 	"log"
 	"regexp"

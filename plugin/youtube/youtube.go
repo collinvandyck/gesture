@@ -4,8 +4,8 @@ package youtube
 import (
 	"errors"
 	"fmt"
-	"gesture/core"
-	"gesture/util"
+	"github.com/collinvandyck/gesture/core"
+	"github.com/collinvandyck/gesture/util"
 	"log"
 	"math/rand"
 	"net/url"
