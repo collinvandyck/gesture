@@ -11,6 +11,7 @@ import (
 	"github.com/collinvandyck/gesture/plugin/markov"
 	"github.com/collinvandyck/gesture/plugin/matcher"
 	"github.com/collinvandyck/gesture/plugin/memegenerator"
+	"github.com/collinvandyck/gesture/plugin/pagerduty"
 	"github.com/collinvandyck/gesture/plugin/sensu"
 	"github.com/collinvandyck/gesture/plugin/twitter"
 	"github.com/collinvandyck/gesture/plugin/youtube"
@@ -20,16 +21,17 @@ import (
 )
 
 func loadPlugins(bot *core.Gobot) {
+	all.Create(bot)
 	gis.Create(bot)
+	graphite.Create(bot)
+	identity.Create(bot)
+	markov.Create(bot)
 	matcher.Create(bot)
+	memegenerator.Create(bot)
+	pagerduty.Create(bot)
+	sensu.Create(bot)
 	twitter.Create(bot)
 	youtube.Create(bot)
-	identity.Create(bot)
-	memegenerator.Create(bot)
-	graphite.Create(bot)
-	sensu.Create(bot)
-	all.Create(bot)
-	markov.Create(bot)
 }
 
 func main() {
