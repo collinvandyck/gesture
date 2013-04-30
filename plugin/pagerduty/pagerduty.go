@@ -2,7 +2,7 @@ package pagerduty
 
 import (
 	"fmt"
-	"gesture/core"
+	"github.com/collinvandyck/gesture/core"
 	"github.com/ohlol/pagerduty"
 	"log"
 )
