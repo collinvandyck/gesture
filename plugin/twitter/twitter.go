@@ -3,8 +3,8 @@ package twitter
 
 import (
 	"fmt"
-	"gesture/core"
-	"gesture/util"
+	"github.com/collinvandyck/gesture/core"
+	"github.com/collinvandyck/gesture/util"
 	"strings"
 )
 

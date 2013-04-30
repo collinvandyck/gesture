@@ -3,7 +3,7 @@
 package matcher
 
 import (
-	"gesture/core"
+	"github.com/collinvandyck/gesture/core"
 	"log"
 )
 

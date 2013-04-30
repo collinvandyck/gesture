@@ -3,7 +3,7 @@ package identity
 
 import (
 	"fmt"
-	"gesture/core"
+	"github.com/collinvandyck/gesture/core"
 )
 
 func Create(bot *core.Gobot) {

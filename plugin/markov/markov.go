@@ -6,8 +6,8 @@ package markov
 
 import (
 	"fmt"
-	"gesture/core"
-	"gesture/state"
+	"github.com/collinvandyck/gesture/core"
+	"github.com/collinvandyck/gesture/state"
 	"log"
 	"math/rand"
 	"strings"
@@ -16,7 +16,7 @@ import (
 
 type markovState struct {
 	PrefixLength int
-	Chains       map[string]map[string][]string // map[user]map[prefix][]chains	
+	Chains       map[string]map[string][]string // map[user]map[prefix][]chains
 }
 
 const (

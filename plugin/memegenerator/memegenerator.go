@@ -2,8 +2,8 @@ package memegenerator
 
 import (
 	"errors"
-	"gesture/core"
-	"gesture/util"
+	"github.com/collinvandyck/gesture/core"
+	"github.com/collinvandyck/gesture/util"
 	"log"
 	neturl "net/url"
 	"strconv"
