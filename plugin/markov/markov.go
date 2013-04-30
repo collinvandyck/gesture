@@ -8,10 +8,10 @@ import (
 	"fmt"
 	"gesture/core"
 	"gesture/state"
+	"log"
+	"math/rand"
 	"strings"
 	"sync"
-	"math/rand"
-	"log"
 )
 
 type markovState struct {
@@ -20,13 +20,13 @@ type markovState struct {
 }
 
 const (
-	maxWords = 100
+	maxWords       = 100
 	maxChainLength = 1000
 )
 
 var (
-	markov = markovState{PrefixLength: 2, Chains: make(map[string]map[string][]string)}
-	mutex sync.Mutex
+	markov      = markovState{PrefixLength: 2, Chains: make(map[string]map[string][]string)}
+	mutex       sync.Mutex
 	pluginState = state.NewState("markov")
 )
 
@@ -35,7 +35,7 @@ func Create(bot *core.Gobot) {
 		log.Printf("Could not load plugin state: %s", err)
 	}
 
-	bot.ListenFor("^ *markov *$", func(msg core.Message, matches[]string) core.Response {
+	bot.ListenFor("^ *markov *$", func(msg core.Message, matches []string) core.Response {
 		mutex.Lock()
 		defer mutex.Unlock()
 		output, err := generateRandom()
@@ -90,9 +90,9 @@ func generate(user string) (string, error) {
 	p := newPrefix(markov.PrefixLength)
 	var words []string
 	for i := 0; i < maxWords; i++ {
-		choices := userMap[p.String()]		
+		choices := userMap[p.String()]
 		if len(choices) == 0 {
-			break;
+			break
 		}
 		next := choices[rand.Intn(len(choices))]
 		words = append(words, next)
@@ -120,7 +120,7 @@ func record(user, text string) error {
 			p.shift(token)
 			// only allow maxChainLength items in a particular chain for a prefix
 			if len(userMap[str]) > maxChainLength {
-				userMap[str] = userMap[str][len(userMap[str]) - maxChainLength:]
+				userMap[str] = userMap[str][len(userMap[str])-maxChainLength:]
 			}
 		}
 	}
@@ -135,7 +135,3 @@ func contains(tokens []string, token string) bool {
 	}
 	return false
 }
-
-
-
-

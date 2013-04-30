@@ -20,5 +20,5 @@ func newPrefix(length int) prefix {
 // shift moves the string into the rightmost slot, moving thens to the left
 func (p *prefix) shift(token string) {
 	copy(p.items, p.items[1:])
-	p.items[len(p.items) -1] = token
+	p.items[len(p.items)-1] = token
 }

@@ -12,10 +12,11 @@ import (
 
 type Response struct {
 	Status Status
-	Error error
+	Error  error
 }
 
 type Status int
+
 const (
 	Stop Status = iota
 	KeepGoing
@@ -112,7 +113,7 @@ func (bot *Gobot) messageReceived(conn *irc.Conn, line *irc.Line) {
 		msg := messageFrom(conn, line)
 		log.Printf(">> %s (%s): %s\n", msg.User, msg.Channel, msg.Text)
 
-	    matched := false
+		matched := false
 		for _, listener := range bot.listeners {
 			response := listener.listen(msg)
 			if response != nil {

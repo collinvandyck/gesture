@@ -35,7 +35,7 @@ func loadPlugins(bot *core.Gobot) {
 }
 
 func main() {
-	rand.Seed( time.Now().UTC().UnixNano())
+	rand.Seed(time.Now().UTC().UnixNano())
 
 	// Parse command-line arguments in logging package
 	flag.Parse()
