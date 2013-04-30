@@ -13,7 +13,7 @@ You will want to create a package in plugin/{packageName}.  For example,
 	package bees
 
 	import (
-		"gesture/core"
+		"github.com/collinvandyck/gesture/core"
 	)
 
 	func Create(bot *core.Gobot){
