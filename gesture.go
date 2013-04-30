@@ -11,6 +11,7 @@ import (
 	"github.com/collinvandyck/gesture/plugin/markov"
 	"github.com/collinvandyck/gesture/plugin/matcher"
 	"github.com/collinvandyck/gesture/plugin/memegenerator"
+	"github.com/collinvandyck/gesture/plugin/pagerduty"
 	"github.com/collinvandyck/gesture/plugin/sensu"
 	"github.com/collinvandyck/gesture/plugin/twitter"
 	"github.com/collinvandyck/gesture/plugin/youtube"
