@@ -124,7 +124,7 @@ func record(user, text string) error {
 			}
 		}
 	}
-	return pluginState.Save(markov)
+	return pluginState.Save(markov, false)
 }
 
 func contains(tokens []string, token string) bool {
