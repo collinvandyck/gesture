@@ -6,9 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"sync"
-	"log"
 	"time"
 )
 
@@ -21,8 +21,8 @@ type State interface {
 }
 
 type state struct {
-	name string
-	data interface{} // the last data to be set
+	name  string
+	data  interface{} // the last data to be set
 	mutex sync.Mutex
 }
 
@@ -49,7 +49,7 @@ func (state *state) doSave(data interface{}) error {
 	state.mutex.Lock()
 	defer state.mutex.Unlock()
 	if data == nil {
-		return nil;
+		return nil
 	}
 	log.Printf("Saving %s", state.name)
 	bytes, err := json.Marshal(data)
@@ -69,26 +69,26 @@ func (state *state) filename() string {
 
 // Save attempts to save the data. If force==true then this method is synchronous.
 func (state *state) Save(data interface{}, force bool) error {
-	if (force) {
+	if force {
 		return state.doSave(data)
-	} else {
-		state.data = data
-		return nil
 	}
+
+	state.data = data
+	return nil
 }
 
 // NewState builds a new State. The name will be used to save serialized data to {name}.state.
 func NewState(name string) State {
-	newState := &state{name:name}
+	newState := &state{name: name}
 	// spawn timed goroutine that will periodically save the state every minute
 	go func() {
 		for {
 			timeout := time.After(1 * time.Minute)
 			select {
-				case <-timeout:
-					if err := newState.doSave(newState.data); err != nil {
-						log.Printf("Could not save %s on loop: %v", name, err)
-					}
+			case <-timeout:
+				if err := newState.doSave(newState.data); err != nil {
+					log.Printf("Could not save %s on loop: %v", name, err)
+				}
 			}
 		}
 	}()
