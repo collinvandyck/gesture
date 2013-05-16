@@ -25,7 +25,8 @@ const (
 )
 
 var (
-	markov      = markovState{PrefixLength: 2, Chains: make(map[string]map[string][]string)}
+	// todo: make prefix length configurable
+	markov      = markovState{PrefixLength: 1, Chains: make(map[string]map[string][]string)}
 	mutex       sync.Mutex
 	pluginState = state.NewState("markov")
 )
