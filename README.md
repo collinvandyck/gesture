@@ -1,12 +1,18 @@
 # What is this?
 
 * gesture is an irc bot.
-* is is an descendent of the allmighty <a href="http://github.com/dietrichf/jester">jester</a>.
-* it runs on a plugin structure, still under construction, kinda like hubot.
+* gesture is an descendent of the allmighty <a href="http://github.com/dietrichf/jester">jester</a>.
+* gesture runs on a plugin structure, still under construction, kinda like hubot.
 
 # How do I plugin?
 
-You will want to create a package in plugin/{packageName}.  For example,
+For better or worse, Plugins are just packages with a `func Create(bot
+*core.Gobot)` method. There is no `interface` you should be defining. Within
+that create method, a plugin is allowed to do anything it likes to the bot.
+Check out the Gobot type for things you can do to your 'bot.
+
+For example, this plugin inserts BEES into your IRC channel everytime someone
+types the word "bees" (or "beeeees" or "beeeeeeeeees" and so on).
 	
 	# plugin/bees/bees.go
 
@@ -23,31 +29,76 @@ You will want to create a package in plugin/{packageName}.  For example,
 		})
 	}
 
-
-The Create(*core.Gobot) method allows the bot to register itself as a listener for particular regular expressions.  If something arrives on a channel that matches the regular expression, the plugin will be called with the Message along with any matching groups from the regular expression. The plugin is then able to reply back on that channel.
-
 # How do I configure?
 
-When starting gesture, the first argument to the program must be the location of a configuration file.  That configuration file should look something like this:
+Gesture uses the following struct for configuration:
+ 
+    type Config struct {
+         DisableFloodProtection bool
+         BotName                string
+         Hostname               string
+         SSL                    bool
+         Channels               []string
+         Plugins                map[string]map[string]interface{}
+    } 
+
+
+Plugin configuration deserves a special mention. Plugin configuration is a map
+of plugin names to plugin configuration maps. A plugin defines what it expects
+out of a plugin configuration map (since it's a `map[string]interface{}`, feel
+free to do whatever you please!). 
+
+# Building your Robot
+
+
+## Quickly
+
+Gesture comes loaded with a `build_bot` tool that generates an IRC-bot script
+for you based on the same JSON configuration file that your bot will load.
+
+Install it with
+
+    go install github.com/collinvandyck/gesture/build_bot
+
+`build_bot` expects that your plugin names will be the full import path of the
+plugin package, and will generate you a script that includes all of the plugins
+listed in your configuration. Unfortunately, even plugins that don't need to be
+configured should be listed.
+
+An example configuration that you want to use `build_bot` on might look like:
 
 	{
-		"botname": "gesturebot",
+		"botname": "gesture",
 		"hostname": "irc.freenode.net",
 		"ssl": true,
 		"channels": ["#lolgesture"],
 		"plugins": {
-			"graphite": {
+      "github.com/collinvandyck/gesture/plugin/gis": {},
+			"github.com/collinvandyck/gesture/plugin/graphite": {
 				"prefix": "myprefix"
 			},
-			"memegenerator": {
-				"user": "foo",
-				"password": "bar"
-			},
-			"youtube": {
+			"github.com/collinvandyck/gesture/plugin/youtube": {
 				"results": 3
-			}
+			},
+      "code.google.com/p/potato_chips_for_golang": {
+        "flavor": "salt_and_vinegar"
+      }
 		}
 	}
 
-Notice that each plugin, when created, will be passed a reference to the configuration so that it may use that data in its initialization process.
+`build_bot` dumps it's results to standard output and leaves you to
+save that to a file and modify it however you please. When you're ready to run
+your bot, `go build` or `go run` it the usual way.
+
+NOTE: `build_bot` does no validation of your config file *because* you have to
+run it through the Go compiler yourself. If something's up with the output of
+`build_bot`, check that you have the proper packages listed as the names of your
+plugins.
+
+## With Care
+
+The `build_bot` script uses Go templates to do it's magic. Check out the script
+for more detail on how to construct a template.
+
+Please also feel free to ignore `build_bot` and write your own Gesture script!
 
