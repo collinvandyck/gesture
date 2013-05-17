@@ -48,7 +48,7 @@ func Create(bot *core.Gobot) {
 	})
 
 	// generate a chain for the specified user
-	bot.ListenFor("^ *markov *(.+)", func(msg core.Message, matches []string) core.Response {
+	bot.ListenFor("^ *markov +(.+)", func(msg core.Message, matches []string) core.Response {
 		mutex.Lock()
 		defer mutex.Unlock()
 		output, err := generate(matches[1])
@@ -70,28 +70,49 @@ func Create(bot *core.Gobot) {
 	})
 }
 
-func generateRandom() (string, error) {
+// getChainMap gets the map for a particular user, or a new map with all of the data for all users
+func getChainMap(user string) (map[string][]string, error) {
+	if user != "" {
+		userMap, ok := markov.Chains[user]
+		if !ok {
+			return nil, fmt.Errorf("No chain could be found for %s", user)
+		}
+		return userMap, nil
+	}
 	if len(markov.Chains) == 0 {
-		return "", fmt.Errorf("No chains could be found")
+		return nil, fmt.Errorf("No chains could be found")
 	}
-	users := make([]string, 0, len(markov.Chains))
-	for k, _ := range markov.Chains {
-		users = append(users, k)
+	// combine all of the users' maps
+	result := make(map[string][]string)
+	for _, userChainMap := range markov.Chains {
+		// userChainMap is a map[string][]string
+		for prefix, userChain := range userChainMap {
+			chain := result[prefix]
+			if chain != nil {
+				chain = make([]string,0)
+			}
+			for _, chainItem := range userChain {
+				chain = append(chain, chainItem)
+			}
+			result[prefix] = chain
+		}
 	}
-	user := users[rand.Intn(len(users))]
-	// we have to unlock here b/c of deadlock caused by generate
-	return generate(user)
+	return result, nil
+}
+
+func generateRandom() (string, error) {
+	return generate("")
 }
 
 func generate(user string) (string, error) {
-	userMap, ok := markov.Chains[user]
-	if !ok {
-		return "", fmt.Errorf("No chain could be found for %s", user)
+	chainMap, err := getChainMap(user)
+	if err != nil {
+		return "", err
 	}
 	p := newPrefix(markov.PrefixLength)
 	var words []string
 	for i := 0; i < maxWords; i++ {
-		choices := userMap[p.String()]
+		choices := chainMap[p.String()]
 		if len(choices) == 0 {
 			break
 		}
