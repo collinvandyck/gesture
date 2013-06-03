@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func Create(bot *core.Gobot) {
+func Create(bot *core.Gobot, config map[string]interface{}) {
 	bot.ListenFor("^gis (.*)", func(msg core.Message, matches []string) core.Response {
 		link, err := search(matches[1])
 		if err != nil {

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func Create(bot *core.Gobot) {
+func Create(bot *core.Gobot, config map[string]interface{}) {
 	bot.ListenFor("!all", func(msg core.Message, matches []string) core.Response {
 		names := make([]string, 0)
 		for _, name := range msg.Names() {

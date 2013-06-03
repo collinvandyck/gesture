@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func Create(bot *core.Gobot) {
+func Create(bot *core.Gobot, config map[string]interface{}) {
 	bot.ListenFor("^describe (\\w+)", func(msg core.Message, matches []string) core.Response {
 		described, err := describe(matches[1])
 		if err != nil {

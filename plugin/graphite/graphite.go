@@ -8,8 +8,8 @@ import (
 	"strings"
 )
 
-func Create(bot *core.Gobot) {
-	prefix, found := bot.Config.Plugins["graphite"]["prefix"].(string)
+func Create(bot *core.Gobot, config map[string]interface{}) {
+	prefix, found := config["prefix"].(string)
 	if !found {
 		log.Printf("Can't find graphite prefix!")
 		return

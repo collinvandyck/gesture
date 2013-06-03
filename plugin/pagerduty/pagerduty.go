@@ -7,9 +7,8 @@ import (
 	"log"
 )
 
-func Create(bot *core.Gobot) {
-	config, found := bot.Config.Plugins["pagerduty"]
-	if !found {
+func Create(bot *core.Gobot, config map[string]interface{}) {
+	if len(config) == 0 {
 		log.Printf("No pagerduty config found")
 		return
 	}

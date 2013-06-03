@@ -31,7 +31,7 @@ var (
 	pluginState = state.NewState("markov")
 )
 
-func Create(bot *core.Gobot) {
+func Create(bot *core.Gobot, config map[string]interface{}) {
 	if err := pluginState.Load(&markov); err != nil {
 		log.Printf("Could not load plugin state: %s", err)
 	}

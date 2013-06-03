@@ -115,7 +115,7 @@ const banner = "\n\n" +
 
 
 func loadPlugins(bot *core.Gobot) {{"{"}}{{range .}}
-	{{.Name}}.Create(bot){{end}}
+	{{.Name}}.Create(bot, bot.Config.Plugins["{{.Path}}"]){{end}}
 }
 
 func main() {

@@ -15,8 +15,8 @@ import (
 // A YouTube plugin
 var urlCleaner = regexp.MustCompile(`&feature=youtube_gdata_player`)
 
-func Create(bot *core.Gobot) {
-	results, ok := bot.Config.Plugins["youtube"]["results"].(float64)
+func Create(bot *core.Gobot, config map[string]interface{}) {
+	results, ok := config["results"].(float64)
 	if !ok {
 		log.Print("Failed to load config for 'youtube' plugin. Using default result count of 1")
 		results = 1

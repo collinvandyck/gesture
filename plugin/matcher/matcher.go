@@ -7,9 +7,9 @@ import (
 	"log"
 )
 
-func Create(bot *core.Gobot) {
+func Create(bot *core.Gobot, config map[string]interface{}) {
 	// matches is actually a map[string]string
-	matches, found := bot.Config.Plugins["matcher"]["matches"]
+	matches, found := config["matches"]
 	if !found {
 		log.Printf("Can't find matcher/matches plugin conf. Plugin will not run.")
 		return

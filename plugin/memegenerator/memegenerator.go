@@ -9,8 +9,8 @@ import (
 	"strconv"
 )
 
-func Create(bot *core.Gobot) error {
-	username, password, err := loadCredentials(bot.Config.Plugins["memegenerator"])
+func Create(bot *core.Gobot, config map[string]interface{}) error {
+	username, password, err := loadCredentials(config)
 	if err != nil {
 		log.Printf("Error starting up memegenerator plugin: %s", err)
 		return err

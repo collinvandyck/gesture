@@ -33,9 +33,8 @@ type postData struct {
 	timestamp int64
 }
 
-func Create(bot *core.Gobot) {
-	config, found := bot.Config.Plugins["sensu"]
-	if !found {
+func Create(bot *core.Gobot, config map[string]interface{}) {
+	if len(config) == 0 {
 		log.Printf("No sensu config found")
 		return
 	}

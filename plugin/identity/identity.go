@@ -6,7 +6,7 @@ import (
 	"github.com/collinvandyck/gesture/core"
 )
 
-func Create(bot *core.Gobot) {
+func Create(bot *core.Gobot, config map[string]interface{}) {
 	name := bot.Name
 
 	bot.ListenFor(fmt.Sprintf("(?i)kill %s", name), func(msg core.Message, matches []string) core.Response {
