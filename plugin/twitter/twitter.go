@@ -2,15 +2,29 @@
 package twitter
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/collinvandyck/gesture/core"
-	"github.com/collinvandyck/gesture/util"
+	"io/ioutil"
+	"log"
+	"net/http"
 	"strings"
 )
 
+var (
+	httpClient = &http.Client{}
+)
+
 func Create(bot *core.Gobot, config map[string]interface{}) {
+	token, ok := config["token"].(string)
+	if !ok {
+		log.Println("Could not find token in config. Twitter plugin won't work")
+		return
+	}
+
 	bot.ListenFor("^describe (\\w+)", func(msg core.Message, matches []string) core.Response {
-		described, err := describe(matches[1])
+		described, err := describe(token, matches[1])
 		if err != nil {
 			return bot.Error(err)
 		}
@@ -19,7 +33,10 @@ func Create(bot *core.Gobot, config map[string]interface{}) {
 	})
 
 	bot.ListenFor("twitter\\.com/(\\w+)/status/(\\d+)", func(msg core.Message, matches []string) core.Response {
-		user, tweet, err := getTweet(matches[2])
+		user, tweet, err := getTweet(token, matches[2])
+		if err != nil {
+			return bot.Error(err)
+		}
 		if err == nil && tweet != "" {
 			// Split multi-line tweets into separate PRIVMSG calls
 			fields := strings.FieldsFunc(tweet, func(r rune) bool {
@@ -35,9 +52,15 @@ func Create(bot *core.Gobot, config map[string]interface{}) {
 	})
 }
 
-func getTweet(tweetId string) (user string, tweet string, err error) {
+func getTweet(token, tweetId string) (user string, tweet string, err error) {
 	var content map[string]interface{}
-	if err := util.UnmarshalUrl("https://api.twitter.com/1/statuses/show/"+tweetId+".json", &content); err != nil {
+	bytes, err := getAuthorizedUrl(token, "https://api.twitter.com/1.1/statuses/show/" + tweetId + ".json")
+	if err != nil {
+		return "", "", err
+	}
+
+	err = json.Unmarshal(bytes, &content)
+	if err != nil {
 		return "", "", err
 	}
 	user = content["user"].(map[string]interface{})["screen_name"].(string)
@@ -45,14 +68,40 @@ func getTweet(tweetId string) (user string, tweet string, err error) {
 	return user, tweet, nil
 }
 
-func describe(user string) (result string, err error) {
-	url := "http://api.twitter.com/1/users/lookup.json?include_entities=true&screen_name=" + user
+func describe(token, user string) (result string, err error) {
+	url := "https://api.twitter.com/1.1/users/lookup.json?include_entities=true&screen_name=" + user
+	bytes, err := getAuthorizedUrl(token, url)
+	if err != nil {
+		return "", err
+	}
 	var jsonResponse []map[string]interface{}
-	if err := util.UnmarshalUrl(url, &jsonResponse); err != nil {
+	err = json.Unmarshal(bytes, &jsonResponse)
+	if err != nil {
 		return "", err
 	}
 	first := jsonResponse[0]
 	description := first["description"].(string)
 	pic := first["profile_image_url_https"].(string)
 	return fmt.Sprintf("\"%s\" %s", description, pic), nil
+}
+
+func getAuthorizedUrl(token, url string) ([]byte, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Authorization", "Bearer "+token)
+	resp, err := httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode >= 300 {
+		return nil, errors.New(fmt.Sprintf("Bad response code: %d", resp.StatusCode))
+	}
+	return body, nil
 }
