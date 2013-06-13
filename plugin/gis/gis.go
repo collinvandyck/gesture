@@ -49,8 +49,9 @@ func search(search string) (string, error) {
 	if len(results) > 0 {
 
 		// start a goroutine to determine image info for each response result
-		imageUrlCh := make(chan string)
-		errorsCh := make(chan error)
+		// we have to use buffered channels so that the senders don't hang on send after the main method exits
+		imageUrlCh := make(chan string, len(results))
+		errorsCh := make(chan error, len(results))
 		for _, resultUrl := range results {
 			go getImageInfo(resultUrl.Url, imageUrlCh, errorsCh)
 		}
