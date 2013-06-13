@@ -54,7 +54,7 @@ func Create(bot *core.Gobot, config map[string]interface{}) {
 
 func getTweet(token, tweetId string) (user string, tweet string, err error) {
 	var content map[string]interface{}
-	bytes, err := getAuthorizedUrl(token, "https://api.twitter.com/1.1/statuses/show/" + tweetId + ".json")
+	bytes, err := getAuthorizedUrl(token, "https://api.twitter.com/1.1/statuses/show/"+tweetId+".json")
 	if err != nil {
 		return "", "", err
 	}
@@ -80,8 +80,14 @@ func describe(token, user string) (result string, err error) {
 		return "", err
 	}
 	first := jsonResponse[0]
-	description := first["description"].(string)
-	pic := first["profile_image_url_https"].(string)
+	description, ok := first["description"].(string)
+	if !ok {
+		return "", errors.New("No description available")
+	}
+	pic, ok := first["profile_image_url_https"].(string)
+	if !ok {
+		return description, nil
+	}
 	return fmt.Sprintf("\"%s\" %s", description, pic), nil
 }
 
