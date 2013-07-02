@@ -12,10 +12,16 @@ import (
 )
 
 func Create(bot *core.Gobot, config map[string]interface{}) {
+	defaultUrl, useDefault := config["default"].(string)
+
 	bot.ListenFor("^gis (.*)", func(msg core.Message, matches []string) core.Response {
 		link, err := search(matches[1])
 		if err != nil {
-			return bot.Error(err)
+			if useDefault {
+				link = defaultUrl
+			} else {
+				return bot.Error(err)
+			}
 		}
 		msg.Ftfy(link)
 		return bot.Stop()
