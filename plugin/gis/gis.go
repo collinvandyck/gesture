@@ -9,12 +9,21 @@ import (
 	neturl "net/url"
 	"strings"
 	"time"
+	"log"
 )
 
 func Create(bot *core.Gobot, config map[string]interface{}) {
 	defaultUrl, useDefault := config["default"].(string)
-
+	exclusions := getExclusions(config)
 	bot.ListenFor("^gis (.*)", func(msg core.Message, matches []string) core.Response {
+		log.Printf("searching for %s on channel %s", matches[1], msg.Channel)
+		for _, ex := range(exclusions) {
+			log.Printf("checking excluded channel: %s", ex)
+			if ex == msg.Channel {
+				log.Printf("Stopping")
+				return bot.Stop()
+			}
+		}
 		link, err := search(matches[1])
 		if err != nil {
 			if useDefault {
@@ -27,6 +36,19 @@ func Create(bot *core.Gobot, config map[string]interface{}) {
 		return bot.Stop()
 	})
 }
+
+func getExclusions(config map[string]interface{}) []string {
+	result := make([]string, 0)
+	exclude, ok := config["exclude"].([]interface{})
+	if (!ok) {
+		return result
+	}
+	for _, ex := range(exclude) {
+		result = append(result, ex.(string))
+	}
+	return result
+}
+
 
 // these structs really tie the room together, man
 type gisResult struct {
