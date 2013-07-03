@@ -9,18 +9,14 @@ import (
 	neturl "net/url"
 	"strings"
 	"time"
-	"log"
 )
 
 func Create(bot *core.Gobot, config map[string]interface{}) {
 	defaultUrl, useDefault := config["default"].(string)
 	exclusions := getExclusions(config)
 	bot.ListenFor("^gis (.*)", func(msg core.Message, matches []string) core.Response {
-		log.Printf("searching for %s on channel %s", matches[1], msg.Channel)
 		for _, ex := range(exclusions) {
-			log.Printf("checking excluded channel: %s", ex)
 			if ex == msg.Channel {
-				log.Printf("Stopping")
 				return bot.Stop()
 			}
 		}
