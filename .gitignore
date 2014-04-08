@@ -5,3 +5,4 @@ gesture
 *.conf
 markov.json
 
+gesture.go

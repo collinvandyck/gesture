@@ -60,8 +60,16 @@ type gisResponse struct {
 func search(search string) (string, error) {
 	searchUrl := "http://ajax.googleapis.com/ajax/services/search/images?v=1.0&q=" + neturl.QueryEscape(search)
 	var gisResponse gisResponse
-	if err := util.UnmarshalUrl(searchUrl, &gisResponse); err != nil {
-		return "", err
+
+	// NB: i am a terrible programmer
+	for i := 0; i < 5; i++ {
+		err := util.UnmarshalUrl(searchUrl, &gisResponse)
+		if err == nil {
+			break
+		}
+		if i == 4 {
+			return "", err
+		}
 	}
 
 	if gisResponse.ResponseData.Results == nil {
