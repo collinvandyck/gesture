@@ -38,30 +38,31 @@ func CreateGobot(config *Config) *Gobot {
 	bot := &Gobot{config.BotName, config, nil, make(chan bool), nil}
 
 	flag.Parse()
-	bot.client = irc.SimpleClient(config.BotName)
-	bot.client.SSL = config.SSL
-	bot.client.Flood = config.DisableFloodProtection
+	bot.client = irc.Client(&irc.Config{
+		SSL:    config.SSL,
+		Flood:  config.DisableFloodProtection,
+		Server: config.Hostname,
+	})
 	bot.client.EnableStateTracking()
 
-	bot.client.AddHandler(irc.CONNECTED,
-		func(conn *irc.Conn, line *irc.Line) {
-			log.Println("Connected to", config.Hostname, "!")
-			for _, channel := range config.Channels {
-				conn.Join(channel)
-			}
-		})
+	bot.client.HandleFunc(irc.CONNECTED, func(conn *irc.Conn, line *irc.Line) {
+		log.Println("Connected to", config.Hostname, "!")
+		for _, channel := range config.Channels {
+			conn.Join(channel)
+		}
+	})
 
-	bot.client.AddHandler("JOIN", func(conn *irc.Conn, line *irc.Line) {
+	bot.client.HandleFunc("JOIN", func(conn *irc.Conn, line *irc.Line) {
 		if line.Nick == bot.Name {
 			log.Printf("Joined %+v\n", line.Args)
 		}
 	})
 
-	bot.client.AddHandler(irc.DISCONNECTED, func(conn *irc.Conn, line *irc.Line) {
+	bot.client.HandleFunc(irc.DISCONNECTED, func(conn *irc.Conn, line *irc.Line) {
 		bot.quitter <- true
 	})
 
-	bot.client.AddHandler("PRIVMSG", func(conn *irc.Conn, line *irc.Line) {
+	bot.client.HandleFunc("PRIVMSG", func(conn *irc.Conn, line *irc.Line) {
 		bot.messageReceived(conn, line)
 	})
 
@@ -70,7 +71,7 @@ func CreateGobot(config *Config) *Gobot {
 
 // Attempt to connect to IRC!
 func (bot *Gobot) Connect(hostname string) (chan bool, error) {
-	err := bot.client.Connect(bot.Config.Hostname)
+	err := bot.client.Connect()
 	if err != nil {
 		return nil, err
 	}
