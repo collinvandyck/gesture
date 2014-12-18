@@ -85,8 +85,15 @@ func (bot *Gobot) Disconnect() {
 // Add a listener that matches incoming messages based on the given regexp.
 // Matched messages and any submatches are returned to the callback.
 func (bot *Gobot) ListenFor(pattern string, cb func(Message, []string) Response) {
+	bot.ListenForExcluding(pattern, cb, nil)
+}
+
+// Add a listener that matches incoming messages based on the given regexp.
+// Matched messages and any submatches are returned to the callback. Any
+// messages on channels listed in excludes will be ignored.
+func (bot *Gobot) ListenForExcluding(pattern string, cb func(Message, []string) Response, excludes []string) {
 	re := regexp.MustCompile(pattern)
-	bot.listeners = append(bot.listeners, listener{re, cb})
+	bot.listeners = append(bot.listeners, newListener(re, cb, excludes))
 }
 
 func (msg *Gobot) Stop() Response {
@@ -145,17 +152,44 @@ func messageFrom(conn *irc.Conn, line *irc.Line) Message {
 // -------------------------------------------------------------------
 // PICK UP THE DAMN PHONE
 
+func asSet(strings []string) map[string]bool {
+	if strings == nil {
+		return nil
+	}
+
+	set := make(map[string]bool)
+	for _, item := range strings {
+		set[item] = true
+	}
+	return set
+}
+
 type listener struct {
+	// Match against the name of each channel
+	ignoreChannels map[string]bool
+	// Match against each message
 	re *regexp.Regexp
+	// Called with the valid message and the thing that matched
 	cb func(Message, []string) Response
 }
 
-// Try to match the given message. If it matches, fire the callback and returns
-// true. Returns false otherwise.
+func newListener(re *regexp.Regexp, cb func(Message, []string) Response,
+	excludes []string) listener {
+	return listener{ignoreChannels: asSet(excludes), cb: cb, re: re}
+}
+
+// Try to match the given message if it does not come in on an excluded channel
+// If the message matches, fire the callback and return the response. Returns
+// nil otherwise.
 func (listener *listener) listen(msg Message) *Response {
+	if listener.ignoreChannels[msg.Channel] {
+		return nil
+	}
+
 	if matches := listener.re.FindStringSubmatch(msg.Text); matches != nil {
 		response := listener.cb(msg, matches)
 		return &response
 	}
+
 	return nil
 }
